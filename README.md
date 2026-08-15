@@ -1,5 +1,7 @@
 # dsh-plugins
 
+[![CI](https://github.com/ghbhiee/dsh-plugins/actions/workflows/ci.yml/badge.svg)](https://github.com/ghbhiee/dsh-plugins/actions/workflows/ci.yml)
+
 Out-of-tree plugins for the [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (`dsh`).
 
 | Package | What it adds |
