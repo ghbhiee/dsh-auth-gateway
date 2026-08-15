@@ -6,8 +6,17 @@ It is the merge of two hand-copied profile runners (a conversational one and a `
 
 ## Install
 
+Not on npm yet. Install from a [release](https://github.com/ghbhiee/dsh-plugins/releases)
+tarball (download it first — passing the URL to `dsh plugin add` trips a pnpm
+integrity check) or from a local clone:
+
 ```sh
-dsh plugin --profile chat add dsh-plugin-cli-session
+# From a release tarball
+curl -LO https://github.com/ghbhiee/dsh-plugins/releases/download/v0.1.0/dsh-plugin-cli-session-0.1.0.tgz
+dsh plugin --profile chat add ./dsh-plugin-cli-session-0.1.0.tgz
+
+# ...or from a clone
+dsh plugin --profile chat add ./packages/cli-session
 ```
 
 The bundle disables `headless-startup` / `headless-runner` and inserts `cli-startup` / `cli-runner` in their place.

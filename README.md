@@ -10,11 +10,30 @@ Out-of-tree plugins for the [DeepSeek Harness](https://github.com/deepseek-ai/de
 | [`dsh-plugin-mobile-shell`](packages/mobile-shell) | Narrow-viewport drawer, swipe gestures, and a deployment-labelled tab title |
 | [`dsh-plugin-cli-session`](packages/cli-session) | A resume-capable CLI runner that prints conversational text or a machine-readable envelope |
 
-Each package is its own bundle and installs on its own:
+## Install
+
+These are not on the npm registry, so `dsh plugin add <bare-name>` will not find
+them. Install from a [release](https://github.com/ghbhiee/dsh-plugins/releases)
+tarball (no clone, no registry) or from a local clone. Each package is its own
+bundle and installs on its own.
+
+**From a release tarball** — download first, then add the local file. (Passing
+the URL straight to `dsh plugin add` trips a pnpm integrity check; download it.)
+
+```sh
+curl -LO https://github.com/ghbhiee/dsh-plugins/releases/download/v0.1.0/dsh-plugin-workbench-0.1.0.tgz
+dsh plugin --profile web add ./dsh-plugin-workbench-0.1.0.tgz
+```
+
+**From a clone** — for local development:
 
 ```sh
 dsh plugin --profile web add ./packages/workbench
 ```
+
+Then enable what you want in the profile's `cordis.patch.yml` (each package's
+README lists its config). See each package for `--profile` (workbench and
+mobile-shell go in a `web`-style profile; cli-session in a headless one).
 
 ## Develop
 
