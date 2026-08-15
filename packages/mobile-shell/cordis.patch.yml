@@ -1,0 +1,7 @@
+# Patch layer contributed by dsh-plugin-mobile-shell.
+#
+# The plugin is browser-only; this row exists so the package appears in the
+# Loader, which is how its `dsh.client` half gets discovered and served.
+- insert:
+    - id: mobile-shell
+      name: dsh-plugin-mobile-shell

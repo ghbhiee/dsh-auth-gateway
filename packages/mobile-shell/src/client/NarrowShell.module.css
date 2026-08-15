@@ -1,0 +1,31 @@
+/* The overlay layer is click-through; these two opt back in. */
+
+.hamburger {
+  position: absolute;
+  z-index: 40;
+  top: 8px;
+  left: 8px;
+  display: flex;
+  width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--dsw-alias-border-l1);
+  border-radius: 9px;
+  background: var(--dsw-alias-bg-base);
+  color: var(--dsw-alias-label-primary);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.hamburger:hover {
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
+.scrim {
+  position: absolute;
+  z-index: 35;
+  inset: 0;
+  background: var(--dsw-alias-bg-mask-1);
+  pointer-events: auto;
+}

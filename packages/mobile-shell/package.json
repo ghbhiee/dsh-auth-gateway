@@ -1,0 +1,55 @@
+{
+  "name": "dsh-plugin-mobile-shell",
+  "version": "0.1.0",
+  "description": "Narrow-viewport drawer, swipe gestures and document title for the DeepSeek Harness web shell",
+  "license": "MIT",
+  "author": "guohongbo@outlook.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ghbhiee/dsh-plugins.git",
+    "directory": "packages/mobile-shell"
+  },
+  "homepage": "https://github.com/ghbhiee/dsh-plugins/tree/main/packages/mobile-shell#readme",
+  "bugs": {
+    "url": "https://github.com/ghbhiee/dsh-plugins/issues"
+  },
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-layout"
+      ]
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "watch": "tsdown --watch"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "*",
+    "react": "^18.2.0"
+  },
+  "keywords": [
+    "dsh-plugin",
+    "deepseek-harness",
+    "cordis"
+  ]
+}

@@ -1,0 +1,50 @@
+/*
+ * Narrow-viewport shell overrides.
+ *
+ * A global stylesheet on purpose: it restyles the layout package's own columns,
+ * which a CSS Module cannot reach. It hangs off DOM contract the shell exposes —
+ * the `[data-shell-overlay]` layer and the frame's `data-sidebar-collapsed`
+ * attribute — and never off a compiled CSS-Module hash class, which changes on
+ * every upstream build.
+ *
+ * The narrow decision itself is NOT a media query. The component measures the
+ * frame box (the same input the shell uses) and marks it, so the threshold has
+ * one home and can be configured per deployment; a media query here would be a
+ * second, silently diverging copy of it.
+ */
+
+[data-mobile-shell-narrow] {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+/* The sidebar column becomes a drawer. */
+[data-mobile-shell-narrow] > :first-child {
+  position: absolute;
+  z-index: 36;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 78%;
+  max-width: 380px;
+  border-right: 1px solid var(--dsw-alias-border-l1);
+  background: var(--dsw-alias-bg-base);
+  transform: translateX(-102%);
+  transition: transform 0.25s ease;
+}
+
+/* Open state is the ABSENCE of the attribute: React drops a `false` value
+   from a data-* prop rather than rendering the string "false". */
+[data-mobile-shell-narrow]:not([data-sidebar-collapsed='true']) > :first-child {
+  transform: translateX(0);
+}
+
+/* Give the hamburger room without shifting the conversation content. */
+[data-mobile-shell-narrow] > :nth-child(2) {
+  padding-top: 34px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-mobile-shell-narrow] > :first-child {
+    transition: none;
+  }
+}

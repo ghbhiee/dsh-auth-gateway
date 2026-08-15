@@ -1,0 +1,8 @@
+# Patch layer contributed by dsh-plugin-workbench.
+#
+# One row: the host half. Its browser half is discovered from this package's
+# `dsh.client` manifest field and served from lib/client.js, so it needs no row
+# of its own.
+- insert:
+    - id: workbench
+      name: dsh-plugin-workbench
