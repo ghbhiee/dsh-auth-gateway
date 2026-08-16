@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{{RP_NAME}} · 登录</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --ink: #e6e9f0;
+    --muted: #8b96b5;
+    --dim: #5d6784;
+    --line: rgba(255,255,255,0.09);
+    --accent: #4c6ef5;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px;
+    background: radial-gradient(1200px 700px at 70% -10%, #16223a 0%, #0a0e17 55%, #060810 100%);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  .card {
+    width: min(400px, 100%); padding: 40px 36px; border-radius: 18px;
+    background: rgba(17, 22, 34, 0.72); border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 24px 70px rgba(0,0,0,0.5); backdrop-filter: blur(10px);
+    text-align: center;
+  }
+  .logo { font-size: 12px; letter-spacing: 2px; color: #7f8db0; text-transform: uppercase; }
+  h1 { margin: 8px 0 6px; font-size: 23px; font-weight: 650; }
+  .sub { margin: 0 0 30px; color: var(--muted); font-size: 13px; }
+
+  .btn {
+    width: 100%; padding: 14px 18px; border-radius: 11px; border: 1px solid rgba(255,255,255,0.12);
+    background: linear-gradient(180deg, #2b3b63, #1d2a4d); color: #fff; font-size: 15px; font-weight: 600;
+    cursor: pointer; transition: filter .15s, transform .05s; font-family: inherit;
+  }
+  .btn:hover:not(:disabled) { filter: brightness(1.18); }
+  .btn:active:not(:disabled) { transform: translateY(1px); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn.ghost { background: transparent; border-color: var(--line); color: var(--muted); font-weight: 500; }
+  .btn.ghost:hover:not(:disabled) { color: var(--ink); border-color: rgba(255,255,255,0.2); filter: none; }
+  .btn:focus-visible, .input:focus-visible, .linkish:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+
+  .enroll-line { margin-top: 22px; font-size: 13px; color: var(--dim); }
+  .linkish {
+    background: none; border: none; padding: 0; font: inherit; cursor: pointer;
+    color: #8fa6ff; text-decoration: underline; text-underline-offset: 3px;
+  }
+  .linkish:hover { color: #b3c2ff; }
+
+  .status {
+    margin-top: 22px; padding: 13px 15px; border-radius: 10px; font-size: 13px; line-height: 1.6;
+    background: rgba(255,255,255,0.04); border: 1px solid var(--line);
+    text-align: left; white-space: pre-wrap; word-break: break-word;
+  }
+  .status:empty { display: none; }
+  .status.err { color: #ff9aa8; border-color: rgba(255,120,140,0.3); }
+  .status.ok { color: #8cf0b0; border-color: rgba(120,255,170,0.25); }
+  .status code {
+    display: inline-block; margin-top: 6px; padding: 7px 10px; border-radius: 6px;
+    background: rgba(0,0,0,0.45); color: #cdd6f4; font-size: 12.5px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace; user-select: all;
+  }
+  .foot { margin-top: 26px; font-size: 11.5px; color: var(--dim); }
+
+  /* ---- registration dialog ---- */
+  dialog {
+    width: min(400px, calc(100vw - 32px)); padding: 0; border: none; border-radius: 16px;
+    background: #131a29; color: var(--ink); box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+    border: 1px solid rgba(255,255,255,0.1);
+    /* Short viewport (phone in landscape, small window) must not swallow the
+       action buttons — cap the height and let the middle section scroll. */
+    max-height: calc(100vh - 32px);
+  }
+  dialog::backdrop { background: rgba(4,6,12,0.72); backdrop-filter: blur(3px); }
+  #reg-form { display: flex; flex-direction: column; max-height: calc(100vh - 32px); }
+  .dlg-head, .dlg-foot { flex: 0 0 auto; }
+  .dlg-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 22px 14px; border-bottom: 1px solid var(--line);
+  }
+  .dlg-head h2 { margin: 0; font-size: 17px; font-weight: 650; }
+  .dlg-close {
+    background: none; border: none; color: var(--muted); font-size: 22px; line-height: 1;
+    cursor: pointer; padding: 2px 6px; border-radius: 6px;
+  }
+  .dlg-close:hover { color: var(--ink); background: rgba(255,255,255,0.07); }
+  .dlg-body { padding: 20px 22px 4px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .dlg-foot {
+    display: flex; gap: 10px; padding: 16px 22px 20px;
+  }
+  .dlg-foot .btn { width: auto; flex: 1; }
+
+  .field { margin-bottom: 18px; text-align: left; }
+  .field label { display: block; font-size: 12.5px; font-weight: 600; color: var(--ink); margin-bottom: 7px; }
+  .input {
+    width: 100%; padding: 12px 14px; border-radius: 9px; font-size: 15px;
+    background: rgba(6,9,16,0.75); border: 1px solid rgba(255,255,255,0.13); color: var(--ink);
+    font-family: inherit;
+  }
+  .input:focus { outline: none; border-color: var(--accent); background: rgba(6,9,16,0.95); }
+  .input::placeholder { color: #4e5872; }
+  .input.bad { border-color: #ff7a8c; }
+  .hint { margin-top: 7px; font-size: 12px; color: var(--dim); line-height: 1.5; }
+  .hint b { color: var(--muted); }
+  .dlg-note {
+    margin: 4px 0 0; padding: 11px 13px; border-radius: 9px; font-size: 12.5px; line-height: 1.55;
+    background: rgba(76,110,245,0.10); border: 1px solid rgba(76,110,245,0.25); color: #aebbf2;
+  }
+  .dlg-err {
+    margin: 14px 0 0; font-size: 13px; color: #ff9aa8; line-height: 1.5; min-height: 0;
+  }
+  .dlg-err:empty { display: none; }
+
+  .spin {
+    display: inline-block; width: 13px; height: 13px; border: 2px solid rgba(255,255,255,0.25);
+    border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite;
+    vertical-align: -2px; margin-right: 7px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
+</style>
+</head>
+<body>
+  <main class="card">
+    <div class="logo">{{RP_ID}}</div>
+    <h1>{{RP_NAME}}</h1>
+    <p class="sub">用 Passkey 登录</p>
+
+    <button id="btn-login" class="btn">🔐 使用 Passkey 登录</button>
+
+    <p class="enroll-line">
+      这台设备还没有 Passkey？<button id="btn-open-reg" class="linkish" type="button">注册一个</button>
+    </p>
+
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+    <div class="foot">WebAuthn · RP: {{RP_ID}}</div>
+  </main>
+
+  <dialog id="reg-dialog" aria-labelledby="reg-title">
+    <form method="dialog" id="reg-form">
+      <div class="dlg-head">
+        <h2 id="reg-title">注册新 Passkey</h2>
+        <button type="button" class="dlg-close" id="reg-cancel-x" aria-label="关闭">×</button>
+      </div>
+
+      <div class="dlg-body">
+        <div class="field">
+          <label for="reg-email" id="email-label">账号邮箱</label>
+          <input id="reg-email" class="input" type="email" maxlength="120"
+                 autocomplete="email" placeholder="you@example.com" required />
+          <div class="hint" id="email-hint"></div>
+        </div>
+
+        <div class="field">
+          <label for="reg-label">设备名称</label>
+          <input id="reg-label" class="input" type="text" maxlength="40"
+                 placeholder="例如：MacBook、iPhone 15" required />
+          <div class="hint"><b>每台设备用不同的名字</b>，否则新的会覆盖旧的。这个名字也会出现在系统的 Passkey 选择器里。</div>
+        </div>
+
+        <p class="dlg-note">新 Passkey 需要在服务器终端批准一次。批准之后，这台设备以后登录就不用再批了。</p>
+        <p class="dlg-err" id="reg-err"></p>
+      </div>
+
+      <div class="dlg-foot">
+        <button type="button" class="btn ghost" id="reg-cancel">取消</button>
+        <button type="button" class="btn" id="reg-submit">创建 Passkey</button>
+      </div>
+    </form>
+  </dialog>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const $status = $('status');
+  const $login = $('btn-login');
+  const $openReg = $('btn-open-reg');
+  const $dlg = $('reg-dialog');
+  const $email = $('reg-email');
+  const $label = $('reg-label');
+  const $regErr = $('reg-err');
+  const $regSubmit = $('reg-submit');
+  let polling = false;
+
+  const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+
+  function setStatus(html, cls = '') {
+    $status.className = 'status ' + cls;
+    $status.innerHTML = html || '';
+  }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, (c) => (
+      { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+  const setBusy = (b) => { $login.disabled = b; $openReg.disabled = b; };
+
+  // WebAuthn never tells the server which account holds the passkey, so the
+  // copy has to ask — worded for wherever it will actually be stored.
+  (function tailorEmailPrompt() {
+    const ua = navigator.userAgent;
+    const isApple = /iPhone|iPad|Macintosh/.test(ua) && !/Android/.test(ua);
+    const isWindows = /Windows NT/.test(ua);
+    if (isApple) {
+      $('email-label').textContent = 'iCloud 账号邮箱';
+      $email.placeholder = 'you@icloud.com';
+      $('email-hint').innerHTML = 'Passkey 会存进你的 <b>iCloud 钥匙串</b>，请填这个 Apple 账号的邮箱，服务器才能对上是哪个账号。';
+    } else if (isWindows) {
+      $('email-label').textContent = 'Microsoft / Google 账号邮箱';
+      $('email-hint').textContent = 'Passkey 会存进 Windows Hello 或浏览器的密码管理器，填对应账号的邮箱便于日后辨认。';
+    } else {
+      $('email-hint').textContent = '填保存这个 Passkey 的账号邮箱，便于日后辨认。';
+    }
+  })();
+
+  // ---- base64url <-> ArrayBuffer ----
+  function b64uFromBuffer(buf) {
+    const bytes = new Uint8Array(buf);
+    let bin = '';
+    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+  function b64uToBuffer(s) {
+    s = s.replace(/-/g, '+').replace(/_/g, '/');
+    while (s.length % 4) s += '=';
+    const bin = atob(s);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return bytes.buffer;
+  }
+  async function post(url, body) {
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body || {}),
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data.error || ('HTTP ' + r.status));
+    return data;
+  }
+
+  // ================= login =================
+  // One button, one system prompt. There is nothing to pick on the page:
+  // the chooser is the OS dialog, populated from the passkeys it actually
+  // holds for this site (which is why allowCredentials stays empty).
+  $login.addEventListener('click', async () => {
+    if (polling) return;
+    setBusy(true);
+    setStatus('<span class="spin"></span>请在系统弹窗里选择 Passkey…');
+    try {
+      const { challengeId, options, hasCredentials } = await post('/auth/login/options');
+      if (!hasCredentials) {
+        setStatus('服务器上还没有任何 Passkey，请先注册一个。', 'err');
+        setBusy(false); openReg(); return;
+      }
+      const cred = await navigator.credentials.get({
+        publicKey: { ...options, challenge: b64uToBuffer(options.challenge), allowCredentials: [] },
+      });
+      setStatus('<span class="spin"></span>正在验证…');
+      const result = await post('/auth/login/verify', {
+        challengeId,
+        response: {
+          id: cred.id,
+          rawId: b64uFromBuffer(cred.rawId),
+          type: cred.type,
+          clientExtensionResults: cred.getClientExtensionResults(),
+          response: {
+            clientDataJSON: b64uFromBuffer(cred.response.clientDataJSON),
+            authenticatorData: b64uFromBuffer(cred.response.authenticatorData),
+            signature: b64uFromBuffer(cred.response.signature),
+            ...(cred.response.userHandle ? { userHandle: b64uFromBuffer(cred.response.userHandle) } : {}),
+          },
+        },
+      });
+
+      if (result.status === 'ok') {
+        setStatus('✅ 登录成功，正在进入…', 'ok');
+        setTimeout(() => location.href = '/', 400);
+        return;
+      }
+      if (result.status === 'pending') {
+        polling = true;
+        pollStatus(result.token, result.label);
+        return;
+      }
+      setStatus('未知状态：' + esc(result.status || ''), 'err');
+      setBusy(false);
+    } catch (e) {
+      if (e.name === 'NotAllowedError') {
+        setStatus('已取消，或这台设备上没有本站的 Passkey。\n如果是新设备，请先注册一个。', 'err');
+      } else {
+        setStatus('登录失败：' + esc(e.message), 'err');
+      }
+      setBusy(false);
+    }
+  });
+
+  // ================= registration dialog =================
+  function openReg() {
+    $regErr.textContent = '';
+    $email.classList.remove('bad');
+    $label.classList.remove('bad');
+    $dlg.showModal();
+    setTimeout(() => $email.focus(), 50);
+  }
+  function closeReg() { $dlg.close(); }
+
+  $openReg.addEventListener('click', openReg);
+  $('reg-cancel').addEventListener('click', closeReg);
+  $('reg-cancel-x').addEventListener('click', closeReg);
+  // Enter anywhere in the form submits rather than silently closing the dialog.
+  $('reg-form').addEventListener('submit', (e) => { e.preventDefault(); $regSubmit.click(); });
+
+  $regSubmit.addEventListener('click', async () => {
+    const email = $email.value.trim();
+    const label = $label.value.trim();
+    $email.classList.remove('bad');
+    $label.classList.remove('bad');
+
+    if (!EMAIL_RE.test(email)) {
+      $regErr.textContent = '请填写有效的邮箱地址。';
+      $email.classList.add('bad'); $email.focus(); return;
+    }
+    if (!label) {
+      $regErr.textContent = '请给这台设备起个名字。';
+      $label.classList.add('bad'); $label.focus(); return;
+    }
+
+    $regErr.textContent = '';
+    $regSubmit.disabled = true;
+    $regSubmit.innerHTML = '<span class="spin"></span>请在系统弹窗里确认…';
+    try {
+      const { challengeId, options } = await post('/auth/register/options', { label, email });
+      const publicKey = {
+        ...options,
+        challenge: b64uToBuffer(options.challenge),
+        user: { ...options.user, id: b64uToBuffer(options.user.id) },
+        excludeCredentials: (options.excludeCredentials || []).map(c => ({ ...c, id: b64uToBuffer(c.id) })),
+      };
+      const cred = await navigator.credentials.create({ publicKey });
+      const response = {
+        id: cred.id,
+        rawId: b64uFromBuffer(cred.rawId),
+        type: cred.type,
+        clientExtensionResults: cred.getClientExtensionResults(),
+        response: {
+          clientDataJSON: b64uFromBuffer(cred.response.clientDataJSON),
+          attestationObject: b64uFromBuffer(cred.response.attestationObject),
+          ...(cred.response.getTransports ? { transports: cred.response.getTransports() } : {}),
+        },
+      };
+      await post('/auth/register/verify', { challengeId, response });
+
+      closeReg();
+      $email.value = ''; $label.value = '';
+      setStatus(
+        `✅ 「${esc(label)}」已创建，等待服务器批准。\n在服务器终端执行：`
+        + `<code>dsh-approve approve ${esc(label)}</code>\n`
+        + '批准后回到这里点「使用 Passkey 登录」即可，以后不用再批。', 'ok');
+    } catch (e) {
+      if (e.name === 'InvalidStateError') {
+        $regErr.textContent = '这台设备已经用这个名字注册过了，直接返回登录即可。';
+      } else if (e.name === 'NotAllowedError') {
+        $regErr.textContent = '已取消。';
+      } else {
+        $regErr.textContent = '注册失败：' + e.message;
+      }
+    } finally {
+      $regSubmit.disabled = false;
+      $regSubmit.textContent = '创建 Passkey';
+    }
+  });
+
+  // ================= waiting for passkey approval =================
+  function pollStatus(token, label) {
+    const cmd = label ? `dsh-approve approve ${label}` : 'dsh-approve list';
+    const waitingHtml =
+      '<span class="spin"></span>Passkey 验证通过，但它还未被信任。\n在服务器终端执行：'
+      + `<code>${esc(cmd)}</code>\n批准后这里会自动进入，以后这台设备就不用再批了。`;
+    setStatus(waitingHtml);
+
+    const tick = async () => {
+      try {
+        const r = await fetch('/auth/status?token=' + encodeURIComponent(token));
+        const data = await r.json();
+        if (data.status === 'approved') {
+          setStatus('✅ 已批准，正在进入…', 'ok');
+          setTimeout(() => location.href = '/', 700);
+          return;
+        }
+        if (data.status === 'denied') {
+          setStatus('❌ 这个 Passkey 被拒绝或已吊销。', 'err');
+          polling = false; setBusy(false); return;
+        }
+        if (data.status === 'notfound') {
+          setStatus('⚠️ 请求已失效（超过 30 分钟未批准），请重新登录。', 'err');
+          polling = false; setBusy(false); return;
+        }
+        setStatus(waitingHtml);
+        setTimeout(tick, 1500);
+      } catch (e) {
+        setStatus('轮询出错：' + esc(e.message) + '\n正在重试…', 'err');
+        setTimeout(tick, 3000);
+      }
+    };
+    tick();
+  }
+})();
+</script>
+</body>
+</html>

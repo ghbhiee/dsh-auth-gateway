@@ -1,5 +1,9 @@
 packages:
   - packages/*
+  # auth-gateway is a standalone reverse-proxy service, not a plugin bundle;
+  # it carries its own deps (express, @simplewebauthn/server) and installs on
+  # its own, so keep it out of the plugin workspace and its lockfile/CI.
+  - '!packages/auth-gateway'
 allowBuilds:
   esbuild: true
   # node-pty is a native module; the tests spawn real shells through it.

@@ -1,0 +1,47 @@
+{
+  "name": "dsh-auth-gateway",
+  "version": "0.1.0",
+  "description": "Passkey (WebAuthn) reverse-proxy gateway that guards a DeepSeek Harness web app",
+  "license": "MIT",
+  "author": "guohongbo@outlook.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ghbhiee/dsh-plugins.git",
+    "directory": "packages/auth-gateway"
+  },
+  "homepage": "https://github.com/ghbhiee/dsh-plugins/tree/main/packages/auth-gateway#readme",
+  "bugs": {
+    "url": "https://github.com/ghbhiee/dsh-plugins/issues"
+  },
+  "keywords": [
+    "dsh-plugin",
+    "deepseek-harness",
+    "webauthn",
+    "passkey",
+    "reverse-proxy"
+  ],
+  "type": "commonjs",
+  "main": "server.js",
+  "bin": {
+    "dsh-approve": "bin/dsh-approve.js"
+  },
+  "files": [
+    "server.js",
+    "bin",
+    "public",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check server.js && node --check bin/dsh-approve.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@simplewebauthn/server": "^13.3.2",
+    "express": "^5.2.1",
+    "http-proxy": "^1.18.1"
+  }
+}
