@@ -9,6 +9,7 @@ Out-of-tree plugins for the [DeepSeek Harness](https://github.com/deepseek-ai/de
 | [`dsh-plugin-workbench`](packages/workbench) | A file browser, file preview, an editor, and a browser terminal, all on one full-frame surface |
 | [`dsh-plugin-mobile-shell`](packages/mobile-shell) | Narrow-viewport drawer, swipe gestures, and a deployment-labelled tab title |
 | [`dsh-plugin-cli-session`](packages/cli-session) | A resume-capable CLI runner that prints conversational text or a machine-readable envelope |
+| [`dsh-auth-gateway`](packages/auth-gateway) | A passkey (WebAuthn) reverse proxy that guards a dsh web app — a companion process, not a plugin (see its README for why) |
 
 ## Install
 
