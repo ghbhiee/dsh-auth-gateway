@@ -1,6 +1,6 @@
 {
   "name": "dsh-plugin-mobile-shell",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Narrow-viewport drawer, swipe gestures and document title for the DeepSeek Harness web shell",
   "license": "MIT",
   "author": "guohongbo@outlook.com",

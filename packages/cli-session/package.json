@@ -1,6 +1,6 @@
 {
   "name": "dsh-plugin-cli-session",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Resume-capable CLI runner for DeepSeek Harness: conversational text or machine-readable JSON from one plugin",
   "license": "MIT",
   "author": "guohongbo@outlook.com",
