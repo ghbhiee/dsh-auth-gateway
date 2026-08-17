@@ -11,8 +11,8 @@ window.__ModuleLoader__.load({
 		let react = require("react");
 		let _deepseek_ai_dsh_client_ui_primitives = require("@deepseek-ai/dsh-client-ui-primitives");
 		let _deepseek_ai_dsh_client_runtime_client = require("@deepseek-ai/dsh-client-runtime/client");
-		//#region \0dsh-css:/Users/hongbo/dsh/plugins/.claude/worktrees/objective-noyce-c2f097/packages/workbench/src/client/WorkbenchLauncher.module.css.mjs
-		const css$8 = ".GtVWiG_launcher{width:100%;color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;background:0 0;border:none;border-radius:8px;align-items:center;gap:8px;padding:6px 8px;display:flex}.GtVWiG_launcher:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}.GtVWiG_label{white-space:nowrap;text-overflow:ellipsis;overflow:hidden}";
+		//#region \0dsh-css:/Users/hongbo/dsh/plugins/packages/workbench/src/client/WorkbenchLauncher.module.css.mjs
+		const css$8 = ".NJnSFG_launcher{width:100%;color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;background:0 0;border:none;border-radius:8px;align-items:center;gap:8px;padding:6px 8px;display:flex}.NJnSFG_launcher:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}.NJnSFG_label{white-space:nowrap;text-overflow:ellipsis;overflow:hidden}";
 		const tagId$8 = "dsh-plugin-workbench/WorkbenchLauncher.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$8) + "]") === null) {
 			const tag = document.createElement("style");
@@ -22,8 +22,8 @@ window.__ModuleLoader__.load({
 			document.head.appendChild(tag);
 		}
 		var WorkbenchLauncher_module_css_default = {
-			"launcher": "GtVWiG_launcher",
-			"label": "GtVWiG_label"
+			"label": "NJnSFG_label",
+			"launcher": "NJnSFG_launcher"
 		};
 		//#endregion
 		//#region src/client/WorkbenchLauncher.tsx
@@ -106,8 +106,8 @@ window.__ModuleLoader__.load({
 			};
 		}
 		//#endregion
-		//#region \0dsh-css:/Users/hongbo/dsh/plugins/.claude/worktrees/objective-noyce-c2f097/packages/workbench/src/client/WorkbenchHeaderLauncher.module.css.mjs
-		const css$7 = ".ojI4dq_button{width:30px;height:30px;color:var(--dsw-alias-label-secondary);cursor:pointer;background:0 0;border:none;border-radius:8px;justify-content:center;align-items:center;padding:0;display:inline-flex}.ojI4dq_button:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}.ojI4dq_button[aria-pressed=true]{color:var(--dsw-alias-label-primary);background:var(--dsw-alias-bg-layer-1)}";
+		//#region \0dsh-css:/Users/hongbo/dsh/plugins/packages/workbench/src/client/WorkbenchHeaderLauncher.module.css.mjs
+		const css$7 = ".ykRHMW_button{width:30px;height:30px;color:var(--dsw-alias-label-secondary);cursor:pointer;background:0 0;border:none;border-radius:8px;justify-content:center;align-items:center;padding:0;display:inline-flex}.ykRHMW_button:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}.ykRHMW_button[aria-pressed=true]{color:var(--dsw-alias-label-primary);background:var(--dsw-alias-bg-layer-1)}";
 		const tagId$7 = "dsh-plugin-workbench/WorkbenchHeaderLauncher.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$7) + "]") === null) {
 			const tag = document.createElement("style");
@@ -116,7 +116,7 @@ window.__ModuleLoader__.load({
 			tag.textContent = css$7;
 			document.head.appendChild(tag);
 		}
-		var WorkbenchHeaderLauncher_module_css_default = { "button": "ojI4dq_button" };
+		var WorkbenchHeaderLauncher_module_css_default = { "button": "ykRHMW_button" };
 		//#endregion
 		//#region src/client/WorkbenchHeaderLauncher.tsx
 		/** Render the header launcher: an icon button that toggles the surface. */
@@ -588,8 +588,8 @@ window.__ModuleLoader__.load({
 			return `${(bytes / 1048576).toFixed(1)} MB`;
 		}
 		//#endregion
-		//#region \0dsh-css:/Users/hongbo/dsh/plugins/.claude/worktrees/objective-noyce-c2f097/packages/workbench/src/client/FileActions.module.css.mjs
-		const css$6 = "._8DG8tq_actions{border-bottom:1px solid var(--dsw-alias-border-l2);flex-direction:column;gap:4px;padding:6px 8px;display:flex}._8DG8tq_row{gap:4px;display:flex}._8DG8tq_button{border:1px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;white-space:nowrap;background:0 0;border-radius:6px;padding:3px 8px;font-size:12px}._8DG8tq_button:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}._8DG8tq_danger{border-color:var(--dsw-alias-state-error-primary,#c33);color:var(--dsw-alias-state-error-primary,#c33)}._8DG8tq_input{border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);min-width:0;color:var(--dsw-alias-label-primary);font:inherit;border-radius:6px;flex:1;padding:3px 6px;font-size:12px}._8DG8tq_hidden{display:none}";
+		//#region \0dsh-css:/Users/hongbo/dsh/plugins/packages/workbench/src/client/FileActions.module.css.mjs
+		const css$6 = ".nAghBG_actions{border-bottom:1px solid var(--dsw-alias-border-l2);flex-direction:column;gap:4px;padding:6px 8px;display:flex}.nAghBG_row{gap:4px;display:flex}.nAghBG_button{border:1px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;white-space:nowrap;background:0 0;border-radius:6px;padding:3px 8px;font-size:12px}.nAghBG_button:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}.nAghBG_danger{border-color:var(--dsw-alias-state-error-primary,#c33);color:var(--dsw-alias-state-error-primary,#c33)}.nAghBG_input{border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);min-width:0;color:var(--dsw-alias-label-primary);font:inherit;border-radius:6px;flex:1;padding:3px 6px;font-size:12px}.nAghBG_hidden{display:none}";
 		const tagId$6 = "dsh-plugin-workbench/FileActions.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$6) + "]") === null) {
 			const tag = document.createElement("style");
@@ -599,12 +599,12 @@ window.__ModuleLoader__.load({
 			document.head.appendChild(tag);
 		}
 		var FileActions_module_css_default = {
-			"hidden": "_8DG8tq_hidden",
-			"danger": "_8DG8tq_danger",
-			"input": "_8DG8tq_input",
-			"row": "_8DG8tq_row",
-			"actions": "_8DG8tq_actions",
-			"button": "_8DG8tq_button"
+			"row": "nAghBG_row",
+			"button": "nAghBG_button",
+			"input": "nAghBG_input",
+			"actions": "nAghBG_actions",
+			"danger": "nAghBG_danger",
+			"hidden": "nAghBG_hidden"
 		};
 		//#endregion
 		//#region src/client/FileActions.tsx
@@ -784,8 +784,8 @@ window.__ModuleLoader__.load({
 			return error instanceof Error ? error.message : String(error);
 		}
 		//#endregion
-		//#region \0dsh-css:/Users/hongbo/dsh/plugins/.claude/worktrees/objective-noyce-c2f097/packages/workbench/src/client/FilePreview.module.css.mjs
-		const css$5 = ".d0tlPa_notice{color:var(--dsw-alias-label-tertiary);padding:16px}.d0tlPa_imageWrap{justify-content:center;align-items:center;height:100%;padding:16px;display:flex}.d0tlPa_image{object-fit:contain;max-width:100%;max-height:100%}.d0tlPa_markdown{max-width:820px;padding:16px 20px}.d0tlPa_read{margin:12px}.d0tlPa_editor{flex-direction:column;height:100%;min-height:0;display:flex}.d0tlPa_toolbar{border-bottom:1px solid var(--dsw-alias-border-l2);align-items:center;gap:8px;padding:6px 10px;display:flex}.d0tlPa_path{color:var(--dsw-alias-label-tertiary);text-overflow:ellipsis;white-space:nowrap;flex:1;font-size:12px;overflow:hidden}.d0tlPa_error{color:var(--dsw-alias-state-error-primary,#c33);font-size:12px}.d0tlPa_saved{color:var(--dsw-alias-label-tertiary);font-size:12px}.d0tlPa_button{border:1px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;background:0 0;border-radius:6px;padding:3px 8px;font-size:12px}.d0tlPa_button:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}.d0tlPa_textarea{background:var(--dsw-alias-bg-base);min-height:0;color:var(--dsw-alias-label-primary);resize:none;border:none;flex:1;padding:10px 12px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.55}.d0tlPa_textarea:focus{outline:none}.d0tlPa_htmlFrame{background:var(--dsw-alias-bg-base);border:none;flex:1;width:100%;min-height:0}";
+		//#region \0dsh-css:/Users/hongbo/dsh/plugins/packages/workbench/src/client/FilePreview.module.css.mjs
+		const css$5 = ".__ybxq_notice{color:var(--dsw-alias-label-tertiary);padding:16px}.__ybxq_imageWrap{justify-content:center;align-items:center;height:100%;padding:16px;display:flex}.__ybxq_image{object-fit:contain;max-width:100%;max-height:100%}.__ybxq_markdown{max-width:820px;padding:16px 20px}.__ybxq_read{margin:12px}.__ybxq_editor{flex-direction:column;height:100%;min-height:0;display:flex}.__ybxq_toolbar{border-bottom:1px solid var(--dsw-alias-border-l2);align-items:center;gap:8px;padding:6px 10px;display:flex}.__ybxq_path{color:var(--dsw-alias-label-tertiary);text-overflow:ellipsis;white-space:nowrap;flex:1;font-size:12px;overflow:hidden}.__ybxq_error{color:var(--dsw-alias-state-error-primary,#c33);font-size:12px}.__ybxq_saved{color:var(--dsw-alias-label-tertiary);font-size:12px}.__ybxq_button{border:1px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;background:0 0;border-radius:6px;padding:3px 8px;font-size:12px}.__ybxq_button:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}.__ybxq_textarea{background:var(--dsw-alias-bg-base);min-height:0;color:var(--dsw-alias-label-primary);resize:none;border:none;flex:1;padding:10px 12px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.55}.__ybxq_textarea:focus{outline:none}.__ybxq_htmlFrame{background:var(--dsw-alias-bg-base);border:none;flex:1;width:100%;min-height:0}";
 		const tagId$5 = "dsh-plugin-workbench/FilePreview.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$5) + "]") === null) {
 			const tag = document.createElement("style");
@@ -795,19 +795,19 @@ window.__ModuleLoader__.load({
 			document.head.appendChild(tag);
 		}
 		var FilePreview_module_css_default = {
-			"image": "d0tlPa_image",
-			"imageWrap": "d0tlPa_imageWrap",
-			"markdown": "d0tlPa_markdown",
-			"read": "d0tlPa_read",
-			"error": "d0tlPa_error",
-			"saved": "d0tlPa_saved",
-			"button": "d0tlPa_button",
-			"notice": "d0tlPa_notice",
-			"textarea": "d0tlPa_textarea",
-			"htmlFrame": "d0tlPa_htmlFrame",
-			"editor": "d0tlPa_editor",
-			"toolbar": "d0tlPa_toolbar",
-			"path": "d0tlPa_path"
+			"textarea": "__ybxq_textarea",
+			"read": "__ybxq_read",
+			"button": "__ybxq_button",
+			"image": "__ybxq_image",
+			"imageWrap": "__ybxq_imageWrap",
+			"htmlFrame": "__ybxq_htmlFrame",
+			"editor": "__ybxq_editor",
+			"notice": "__ybxq_notice",
+			"markdown": "__ybxq_markdown",
+			"toolbar": "__ybxq_toolbar",
+			"path": "__ybxq_path",
+			"saved": "__ybxq_saved",
+			"error": "__ybxq_error"
 		};
 		//#endregion
 		//#region src/client/FilePreview.tsx
@@ -1108,8 +1108,8 @@ window.__ModuleLoader__.load({
 			});
 		}
 		//#endregion
-		//#region \0dsh-css:/Users/hongbo/dsh/plugins/.claude/worktrees/objective-noyce-c2f097/packages/workbench/src/client/FileBrowser.module.css.mjs
-		const css$4 = ".KKn2Eq_browser{height:100%;min-height:0;display:flex}.KKn2Eq_list{border-right:1px solid var(--dsw-alias-border-l2);flex-direction:column;width:300px;min-width:220px;display:flex;overflow:hidden}.KKn2Eq_toolbar{border-bottom:1px solid var(--dsw-alias-border-l2);padding:8px}.KKn2Eq_rootPicker{border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);width:100%;color:var(--dsw-alias-label-primary);font:inherit;border-radius:6px;padding:4px 6px}.KKn2Eq_crumbs{border-bottom:1px solid var(--dsw-alias-border-l2);flex-wrap:wrap;gap:2px;padding:6px 8px;display:flex}.KKn2Eq_crumb{color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;background:0 0;border:none;border-radius:6px;padding:2px 6px;font-size:12px}.KKn2Eq_crumb:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}.KKn2Eq_rows{flex:1;min-height:0;margin:0;padding:4px;list-style:none;overflow-y:auto}.KKn2Eq_row{width:100%;color:var(--dsw-alias-label-primary);cursor:pointer;font:inherit;text-align:left;background:0 0;border:none;border-radius:6px;align-items:center;gap:6px;padding:4px 8px;font-size:13px;display:flex}.KKn2Eq_row:hover{background:var(--dsw-alias-interactive-bg-hover)}.KKn2Eq_rowActive{background:var(--dsw-alias-interactive-bg-active)}.KKn2Eq_icon{width:12px;color:var(--dsw-alias-label-tertiary)}.KKn2Eq_name{white-space:nowrap;text-overflow:ellipsis;flex:1;overflow:hidden}.KKn2Eq_size{color:var(--dsw-alias-label-tertiary);font-size:11px}.KKn2Eq_preview{flex:1;min-width:0;overflow:auto}.KKn2Eq_browser[data-narrow=true]{position:relative}.KKn2Eq_browser[data-narrow=true] .KKn2Eq_list{border-right:none;width:100%;min-width:0}.KKn2Eq_browser[data-narrow=true] .KKn2Eq_preview{z-index:3;background:var(--dsw-alias-bg-base);position:absolute;inset:0}.KKn2Eq_browser[data-narrow=true][data-view=list] .KKn2Eq_preview,.KKn2Eq_browser[data-narrow=true][data-view=preview] .KKn2Eq_list{display:none}.KKn2Eq_backBar{border-bottom:1px solid var(--dsw-alias-border-l2);align-items:center;gap:8px;padding:6px 10px;display:flex}.KKn2Eq_back{border:1px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;background:0 0;border-radius:6px;padding:3px 8px;font-size:12px}.KKn2Eq_back:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}.KKn2Eq_backName{color:var(--dsw-alias-label-tertiary);text-overflow:ellipsis;white-space:nowrap;font-size:12px;overflow:hidden}.KKn2Eq_notice{color:var(--dsw-alias-label-tertiary);padding:12px;font-size:13px}.KKn2Eq_entry{border-radius:6px;align-items:center;display:flex}.KKn2Eq_entryActive{background:var(--dsw-alias-interactive-bg-active,var(--dsw-alias-interactive-bg-hover))}.KKn2Eq_icon{width:18px;color:var(--dsw-alias-label-tertiary);cursor:pointer;font:inherit;background:0 0;border:none;padding:2px 0;font-size:12px}.KKn2Eq_icon:hover{color:var(--dsw-alias-label-primary)}.KKn2Eq_listDropping{outline:2px dashed var(--dsw-alias-border-l3);outline-offset:-6px;position:relative}.KKn2Eq_dropHint{z-index:2;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);text-align:center;border-radius:8px;padding:8px;font-size:12px;position:absolute;top:50%;left:8px;right:8px;transform:translateY(-50%)}.KKn2Eq_search{border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);width:100%;color:var(--dsw-alias-label-primary);font:inherit;border-radius:6px;margin-top:6px;padding:4px 6px;font-size:12px}";
+		//#region \0dsh-css:/Users/hongbo/dsh/plugins/packages/workbench/src/client/FileBrowser.module.css.mjs
+		const css$4 = "._2eUkga_browser{height:100%;min-height:0;display:flex}._2eUkga_list{border-right:1px solid var(--dsw-alias-border-l2);flex-direction:column;width:300px;min-width:220px;display:flex;overflow:hidden}._2eUkga_toolbar{border-bottom:1px solid var(--dsw-alias-border-l2);padding:8px}._2eUkga_rootPicker{border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);width:100%;color:var(--dsw-alias-label-primary);font:inherit;border-radius:6px;padding:4px 6px}._2eUkga_crumbs{border-bottom:1px solid var(--dsw-alias-border-l2);flex-wrap:wrap;gap:2px;padding:6px 8px;display:flex}._2eUkga_crumb{color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;background:0 0;border:none;border-radius:6px;padding:2px 6px;font-size:12px}._2eUkga_crumb:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}._2eUkga_rows{flex:1;min-height:0;margin:0;padding:4px;list-style:none;overflow-y:auto}._2eUkga_row{width:100%;color:var(--dsw-alias-label-primary);cursor:pointer;font:inherit;text-align:left;background:0 0;border:none;border-radius:6px;align-items:center;gap:6px;padding:4px 8px;font-size:13px;display:flex}._2eUkga_row:hover{background:var(--dsw-alias-interactive-bg-hover)}._2eUkga_rowActive{background:var(--dsw-alias-interactive-bg-active)}._2eUkga_icon{width:12px;color:var(--dsw-alias-label-tertiary)}._2eUkga_name{white-space:nowrap;text-overflow:ellipsis;flex:1;overflow:hidden}._2eUkga_size{color:var(--dsw-alias-label-tertiary);font-size:11px}._2eUkga_preview{flex:1;min-width:0;overflow:auto}._2eUkga_browser[data-narrow=true]{position:relative}._2eUkga_browser[data-narrow=true] ._2eUkga_list{border-right:none;width:100%;min-width:0}._2eUkga_browser[data-narrow=true] ._2eUkga_preview{z-index:3;background:var(--dsw-alias-bg-base);position:absolute;inset:0}._2eUkga_browser[data-narrow=true][data-view=list] ._2eUkga_preview,._2eUkga_browser[data-narrow=true][data-view=preview] ._2eUkga_list{display:none}._2eUkga_backBar{border-bottom:1px solid var(--dsw-alias-border-l2);align-items:center;gap:8px;padding:6px 10px;display:flex}._2eUkga_back{border:1px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;background:0 0;border-radius:6px;padding:3px 8px;font-size:12px}._2eUkga_back:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}._2eUkga_backName{color:var(--dsw-alias-label-tertiary);text-overflow:ellipsis;white-space:nowrap;font-size:12px;overflow:hidden}._2eUkga_notice{color:var(--dsw-alias-label-tertiary);padding:12px;font-size:13px}._2eUkga_entry{border-radius:6px;align-items:center;display:flex}._2eUkga_entryActive{background:var(--dsw-alias-interactive-bg-active,var(--dsw-alias-interactive-bg-hover))}._2eUkga_icon{width:18px;color:var(--dsw-alias-label-tertiary);cursor:pointer;font:inherit;background:0 0;border:none;padding:2px 0;font-size:12px}._2eUkga_icon:hover{color:var(--dsw-alias-label-primary)}._2eUkga_listDropping{outline:2px dashed var(--dsw-alias-border-l3);outline-offset:-6px;position:relative}._2eUkga_dropHint{z-index:2;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);text-align:center;border-radius:8px;padding:8px;font-size:12px;position:absolute;top:50%;left:8px;right:8px;transform:translateY(-50%)}._2eUkga_search{border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);width:100%;color:var(--dsw-alias-label-primary);font:inherit;border-radius:6px;margin-top:6px;padding:4px 6px;font-size:12px}";
 		const tagId$4 = "dsh-plugin-workbench/FileBrowser.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$4) + "]") === null) {
 			const tag = document.createElement("style");
@@ -1119,28 +1119,28 @@ window.__ModuleLoader__.load({
 			document.head.appendChild(tag);
 		}
 		var FileBrowser_module_css_default = {
-			"listDropping": "KKn2Eq_listDropping",
-			"rootPicker": "KKn2Eq_rootPicker",
-			"entryActive": "KKn2Eq_entryActive",
-			"entry": "KKn2Eq_entry",
-			"name": "KKn2Eq_name",
-			"crumbs": "KKn2Eq_crumbs",
-			"backBar": "KKn2Eq_backBar",
-			"size": "KKn2Eq_size",
-			"notice": "KKn2Eq_notice",
-			"backName": "KKn2Eq_backName",
-			"crumb": "KKn2Eq_crumb",
-			"toolbar": "KKn2Eq_toolbar",
-			"rows": "KKn2Eq_rows",
-			"row": "KKn2Eq_row",
-			"rowActive": "KKn2Eq_rowActive",
-			"preview": "KKn2Eq_preview",
-			"browser": "KKn2Eq_browser",
-			"back": "KKn2Eq_back",
-			"icon": "KKn2Eq_icon",
-			"dropHint": "KKn2Eq_dropHint",
-			"list": "KKn2Eq_list",
-			"search": "KKn2Eq_search"
+			"backName": "_2eUkga_backName",
+			"dropHint": "_2eUkga_dropHint",
+			"crumb": "_2eUkga_crumb",
+			"backBar": "_2eUkga_backBar",
+			"rowActive": "_2eUkga_rowActive",
+			"rows": "_2eUkga_rows",
+			"toolbar": "_2eUkga_toolbar",
+			"browser": "_2eUkga_browser",
+			"entry": "_2eUkga_entry",
+			"entryActive": "_2eUkga_entryActive",
+			"back": "_2eUkga_back",
+			"crumbs": "_2eUkga_crumbs",
+			"row": "_2eUkga_row",
+			"list": "_2eUkga_list",
+			"icon": "_2eUkga_icon",
+			"listDropping": "_2eUkga_listDropping",
+			"notice": "_2eUkga_notice",
+			"size": "_2eUkga_size",
+			"rootPicker": "_2eUkga_rootPicker",
+			"preview": "_2eUkga_preview",
+			"search": "_2eUkga_search",
+			"name": "_2eUkga_name"
 		};
 		//#endregion
 		//#region src/client/FileBrowser.tsx
@@ -9095,7 +9095,7 @@ window.__ModuleLoader__.load({
 			})()));
 		}));
 		//#endregion
-		//#region \0dsh-css:/Users/hongbo/dsh/plugins/.claude/worktrees/objective-noyce-c2f097/node_modules/.pnpm/@xterm+xterm@5.5.0/node_modules/@xterm/xterm/css/xterm.css.mjs
+		//#region \0dsh-css:/Users/hongbo/dsh/plugins/node_modules/.pnpm/@xterm+xterm@5.5.0/node_modules/@xterm/xterm/css/xterm.css.mjs
 		var import_addon_fit = require_addon_fit();
 		var import_addon_web_links = require_addon_web_links();
 		var import_xterm = require_xterm();
@@ -9220,8 +9220,8 @@ window.__ModuleLoader__.load({
 			};
 		}
 		//#endregion
-		//#region \0dsh-css:/Users/hongbo/dsh/plugins/.claude/worktrees/objective-noyce-c2f097/packages/workbench/src/client/TerminalPane.module.css.mjs
-		const css$2 = ".OXgMra_pane{background:var(--dsw-alias-bg-layer-1);flex-direction:column;height:100%;min-height:0;display:flex}.OXgMra_tabs{border-bottom:1px solid var(--dsw-alias-border-l2);align-items:center;gap:4px;padding:4px 6px;display:flex}.OXgMra_tab{border:1px solid #0000;border-radius:6px;align-items:center;display:flex}.OXgMra_tabActive{border-color:var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-base)}.OXgMra_tabLabel{color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;background:0 0;border:none;padding:3px 6px;font-size:12px}.OXgMra_tabActive .OXgMra_tabLabel{color:var(--dsw-alias-label-primary)}.OXgMra_tabClose,.OXgMra_newTab{color:var(--dsw-alias-label-tertiary);cursor:pointer;font:inherit;background:0 0;border:none;border-radius:6px;padding:2px 6px;line-height:1}.OXgMra_tabClose:hover,.OXgMra_newTab:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}.OXgMra_surface{flex:1;min-height:0;padding:6px 8px}.OXgMra_status{border-top:1px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-tertiary);align-items:center;gap:8px;padding:6px 10px;font-size:12px;display:flex}.OXgMra_retry{border:1px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;background:0 0;border-radius:6px;padding:2px 8px;font-size:12px}.OXgMra_retry:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}";
+		//#region \0dsh-css:/Users/hongbo/dsh/plugins/packages/workbench/src/client/TerminalPane.module.css.mjs
+		const css$2 = ".OXPjra_pane{background:var(--dsw-alias-bg-layer-1);flex-direction:column;height:100%;min-height:0;display:flex}.OXPjra_tabs{border-bottom:1px solid var(--dsw-alias-border-l2);align-items:center;gap:4px;padding:4px 6px;display:flex}.OXPjra_tab{border:1px solid #0000;border-radius:6px;align-items:center;display:flex}.OXPjra_tabActive{border-color:var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-base)}.OXPjra_tabLabel{color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;background:0 0;border:none;padding:3px 6px;font-size:12px}.OXPjra_tabActive .OXPjra_tabLabel{color:var(--dsw-alias-label-primary)}.OXPjra_tabClose,.OXPjra_newTab{color:var(--dsw-alias-label-tertiary);cursor:pointer;font:inherit;background:0 0;border:none;border-radius:6px;padding:2px 6px;line-height:1}.OXPjra_tabClose:hover,.OXPjra_newTab:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}.OXPjra_surface{flex:1;min-height:0;padding:6px 8px}.OXPjra_status{border-top:1px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-tertiary);align-items:center;gap:8px;padding:6px 10px;font-size:12px;display:flex}.OXPjra_retry{border:1px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;background:0 0;border-radius:6px;padding:2px 8px;font-size:12px}.OXPjra_retry:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}";
 		const tagId$2 = "dsh-plugin-workbench/TerminalPane.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$2) + "]") === null) {
 			const tag = document.createElement("style");
@@ -9231,16 +9231,16 @@ window.__ModuleLoader__.load({
 			document.head.appendChild(tag);
 		}
 		var TerminalPane_module_css_default = {
-			"tabActive": "OXgMra_tabActive",
-			"newTab": "OXgMra_newTab",
-			"tabClose": "OXgMra_tabClose",
-			"tabLabel": "OXgMra_tabLabel",
-			"pane": "OXgMra_pane",
-			"retry": "OXgMra_retry",
-			"tab": "OXgMra_tab",
-			"status": "OXgMra_status",
-			"tabs": "OXgMra_tabs",
-			"surface": "OXgMra_surface"
+			"tabActive": "OXPjra_tabActive",
+			"surface": "OXPjra_surface",
+			"retry": "OXPjra_retry",
+			"tabLabel": "OXPjra_tabLabel",
+			"tabClose": "OXPjra_tabClose",
+			"newTab": "OXPjra_newTab",
+			"status": "OXPjra_status",
+			"tabs": "OXPjra_tabs",
+			"pane": "OXPjra_pane",
+			"tab": "OXPjra_tab"
 		};
 		//#endregion
 		//#region src/client/TerminalPane.tsx
@@ -9559,8 +9559,8 @@ window.__ModuleLoader__.load({
 			});
 		}
 		//#endregion
-		//#region \0dsh-css:/Users/hongbo/dsh/plugins/.claude/worktrees/objective-noyce-c2f097/packages/workbench/src/client/WorkbenchOverlay.module.css.mjs
-		const css$1 = ".P2qc0W_panel{pointer-events:auto;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);flex-direction:column;display:flex;position:absolute;inset:0}.P2qc0W_header{border-bottom:1px solid var(--dsw-alias-border-l2);justify-content:space-between;align-items:center;gap:8px;padding:8px 12px;display:flex}.P2qc0W_title{font-weight:600}.P2qc0W_close{border:1px solid var(--dsw-alias-border-l2);color:inherit;cursor:pointer;background:0 0;border-radius:8px;padding:4px 10px}.P2qc0W_close:hover{background:var(--dsw-alias-interactive-bg-hover)}.P2qc0W_tabs{flex:1;gap:4px;display:flex}.P2qc0W_tab{color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;background:0 0;border:1px solid #0000;border-radius:8px;padding:4px 10px;font-size:13px}.P2qc0W_tab:hover{background:var(--dsw-alias-interactive-bg-hover)}.P2qc0W_tabActive{border-color:var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary)}.P2qc0W_body{flex:1;min-height:0;position:relative;overflow:hidden}.P2qc0W_pane{position:absolute;inset:0;overflow:hidden}.P2qc0W_paneHidden{visibility:hidden;pointer-events:none;position:absolute;inset:0;overflow:hidden}.P2qc0W_resizeHandle{z-index:1;cursor:col-resize;background:0 0;border:none;width:7px;height:100%;padding:0;position:absolute;top:0;left:-3px}:is(.P2qc0W_resizeHandle:hover,.P2qc0W_resizeHandle:focus-visible){background:var(--dsw-alias-interactive-bg-hover);outline:none}.P2qc0W_dockToggle{border:1px solid var(--dsw-alias-border-l2);color:inherit;cursor:pointer;font:inherit;background:0 0;border-radius:8px;padding:4px 10px;font-size:13px}.P2qc0W_dockToggle:hover{background:var(--dsw-alias-interactive-bg-hover)}";
+		//#region \0dsh-css:/Users/hongbo/dsh/plugins/packages/workbench/src/client/WorkbenchOverlay.module.css.mjs
+		const css$1 = ".GNmo4W_panel{pointer-events:auto;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);flex-direction:column;display:flex;position:absolute;inset:0}.GNmo4W_header{border-bottom:1px solid var(--dsw-alias-border-l2);justify-content:space-between;align-items:center;gap:8px;padding:8px 12px;display:flex}.GNmo4W_title{font-weight:600}.GNmo4W_close{border:1px solid var(--dsw-alias-border-l2);color:inherit;cursor:pointer;background:0 0;border-radius:8px;padding:4px 10px}.GNmo4W_close:hover{background:var(--dsw-alias-interactive-bg-hover)}.GNmo4W_tabs{flex:1;gap:4px;display:flex}.GNmo4W_tab{color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;background:0 0;border:1px solid #0000;border-radius:8px;padding:4px 10px;font-size:13px}.GNmo4W_tab:hover{background:var(--dsw-alias-interactive-bg-hover)}.GNmo4W_tabActive{border-color:var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary)}.GNmo4W_body{flex:1;min-height:0;position:relative;overflow:hidden}.GNmo4W_pane{position:absolute;inset:0;overflow:hidden}.GNmo4W_paneHidden{visibility:hidden;pointer-events:none;position:absolute;inset:0;overflow:hidden}.GNmo4W_resizeHandle{z-index:1;cursor:col-resize;background:0 0;border:none;width:7px;height:100%;padding:0;position:absolute;top:0;left:-3px}:is(.GNmo4W_resizeHandle:hover,.GNmo4W_resizeHandle:focus-visible){background:var(--dsw-alias-interactive-bg-hover);outline:none}.GNmo4W_dockToggle{border:1px solid var(--dsw-alias-border-l2);color:inherit;cursor:pointer;font:inherit;background:0 0;border-radius:8px;padding:4px 10px;font-size:13px}.GNmo4W_dockToggle:hover{background:var(--dsw-alias-interactive-bg-hover)}";
 		const tagId$1 = "dsh-plugin-workbench/WorkbenchOverlay.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$1) + "]") === null) {
 			const tag = document.createElement("style");
@@ -9570,21 +9570,21 @@ window.__ModuleLoader__.load({
 			document.head.appendChild(tag);
 		}
 		var WorkbenchOverlay_module_css_default = {
-			"title": "P2qc0W_title",
-			"resizeHandle": "P2qc0W_resizeHandle",
-			"dockToggle": "P2qc0W_dockToggle",
-			"tabActive": "P2qc0W_tabActive",
-			"panel": "P2qc0W_panel",
-			"header": "P2qc0W_header",
-			"body": "P2qc0W_body",
-			"pane": "P2qc0W_pane",
-			"paneHidden": "P2qc0W_paneHidden",
-			"close": "P2qc0W_close",
-			"tabs": "P2qc0W_tabs",
-			"tab": "P2qc0W_tab"
+			"resizeHandle": "GNmo4W_resizeHandle",
+			"dockToggle": "GNmo4W_dockToggle",
+			"close": "GNmo4W_close",
+			"tabActive": "GNmo4W_tabActive",
+			"paneHidden": "GNmo4W_paneHidden",
+			"panel": "GNmo4W_panel",
+			"tabs": "GNmo4W_tabs",
+			"tab": "GNmo4W_tab",
+			"header": "GNmo4W_header",
+			"title": "GNmo4W_title",
+			"body": "GNmo4W_body",
+			"pane": "GNmo4W_pane"
 		};
 		//#endregion
-		//#region \0dsh-css:/Users/hongbo/dsh/plugins/.claude/worktrees/objective-noyce-c2f097/packages/workbench/src/client/workbench-dock.css.mjs
+		//#region \0dsh-css:/Users/hongbo/dsh/plugins/packages/workbench/src/client/workbench-dock.css.mjs
 		const css = "[data-workbench-docked]>:nth-child(2){margin-inline-end:var(--wb-dock-width,460px)}[data-workbench-docked] [data-workbench-panel]{width:var(--wb-dock-width,460px);border-left:1px solid var(--dsw-alias-border-l2);left:auto;right:0}";
 		const tagId = "dsh-plugin-workbench/workbench-dock.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId) + "]") === null) {
