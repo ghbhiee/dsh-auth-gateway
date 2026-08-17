@@ -23,6 +23,8 @@ There are two launchers — one at the bottom of the sidebar, and one in the **t
 
 Full-frame, it is a labelled `dialog` that takes focus when it opens; docked, it is a `complementary` region beside a still-usable conversation, so it does not grab focus away. Escape closes it in either mode — except over the terminal, where Escape belongs to the shell (vim, less, readline all want it).
 
+The file browser is two panes side by side when there is room. Below about 560px — a narrow dock — they no longer both fit, so it **drills in** instead: the list fills the pane, and opening a file overlays a full-width preview with a **Back** button that returns to the list. It measures the pane (a `ResizeObserver` on the browser, not the window), so it adapts to whatever width the dock is dragged to; `data-narrow` and `data-view` drive the switch in CSS.
+
 ## Configure
 
 Everything that mutates or spawns is off by default. Override in the profile's `cordis.patch.yml`:
@@ -160,5 +162,6 @@ With `writeEnabled` on, the browser half grows an action bar (new file, new fold
 - **Reconnecting does not restore the old shells.** They are gone with the socket; you get a fresh one, and scrollback from before the drop is lost.
 - **Refreshing is polling, not watching.** The listing and any open preview re-check every five seconds while visible, and immediately when the tab regains focus; there is no filesystem watch, so a change can take up to five seconds to show. Searching pauses the listing poll.
 - **HTML previews are sandboxed and, by default, inert.** Scripts are blocked unless you opt in per file, and even then run walled off in an opaque origin. Because the frame has no base URL and no same-origin access, a page's relative or external resources — its own linked CSS/JS/images — may not load: it is a structure-and-inline-styles preview, not a live site. Use **View source** for the markup.
+- **Conversation file-mention links open through the host, not the workbench.** dsh's own file-mention/produced-files system already registers the `chatFileMentions` service and opens files through the host opener. A plugin cannot re-point those links at the workbench: cordis refuses a duplicate service registration (it fails plugin load — verified), and the mention buttons carry no stable hook to intercept, only compiled hash classes this plugin will not key on. The docked file tree already roots at the session directory, so a produced file is a click away there instead.
 - **No Range requests.** `bytes` sends whole files, so large media cannot be seeked; it is meant for images and small downloads.
 - **Only UTF-8 text is displayable.** Other encodings are detected and refused rather than transcoded; there is no encoding picker.
