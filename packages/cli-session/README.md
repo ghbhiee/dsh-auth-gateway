@@ -6,9 +6,20 @@ It is the merge of two hand-copied profile runners (a conversational one and a `
 
 ## Install
 
-Not on npm yet. Install from a [release](https://github.com/ghbhiee/dsh-plugins/releases)
-tarball (download it first — passing the URL to `dsh plugin add` trips a pnpm
-integrity check) or from a local clone:
+Not on npm yet. The built `lib/` is committed, so it installs straight from
+GitHub — no download, no build step:
+
+```sh
+# From the standalone repo (recommended)
+dsh plugin --profile chat add github:ghbhiee/dsh-plugin-cli-session
+
+# ...or from the monorepo
+dsh plugin --profile chat add "github:ghbhiee/dsh-plugins#path:packages/cli-session"
+```
+
+Or from a [release](https://github.com/ghbhiee/dsh-plugins/releases) tarball
+(download it first — passing the URL to `dsh plugin add` trips a pnpm integrity
+check) or a local clone:
 
 ```sh
 # From a release tarball

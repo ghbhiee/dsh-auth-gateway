@@ -6,9 +6,20 @@ It replaces a set of hand-applied patches to `@deepseek-ai/dsh-client-ui-layout`
 
 ## Install
 
-Not on npm yet. Install from a [release](https://github.com/ghbhiee/dsh-plugins/releases)
-tarball (download it first — passing the URL to `dsh plugin add` trips a pnpm
-integrity check) or from a local clone:
+Not on npm yet. The built `lib/` is committed, so it installs straight from
+GitHub — no download, no build step:
+
+```sh
+# From the standalone repo (recommended)
+dsh plugin --profile web add github:ghbhiee/dsh-plugin-mobile-shell
+
+# ...or from the monorepo
+dsh plugin --profile web add "github:ghbhiee/dsh-plugins#path:packages/mobile-shell"
+```
+
+Or from a [release](https://github.com/ghbhiee/dsh-plugins/releases) tarball
+(download it first — passing the URL to `dsh plugin add` trips a pnpm integrity
+check) or a local clone:
 
 ```sh
 # From a release tarball

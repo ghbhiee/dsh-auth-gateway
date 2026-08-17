@@ -4,13 +4,15 @@ A file browser, file preview, and browser terminal for the [DeepSeek Harness](ht
 
 ## Install
 
-Not on npm yet. The built `lib/` is committed, so it installs straight from a
-GitHub URL — no download, no build step. It is a monorepo, so the `#path:`
-subdirectory fragment is required (a bare `github:owner/repo` resolves to the
-private workspace root, which is not a plugin):
+Not on npm yet. The built `lib/` is committed, so it installs straight from
+GitHub — no download, no build step:
 
 ```sh
-# Directly from GitHub (tracks the default branch)
+# From the standalone repo (recommended)
+dsh plugin --profile web add github:ghbhiee/dsh-plugin-workbench
+
+# ...or from the monorepo (the #path: fragment picks the package; a bare
+# github:ghbhiee/dsh-plugins resolves to the workspace root, not a plugin)
 dsh plugin --profile web add "github:ghbhiee/dsh-plugins#path:packages/workbench"
 ```
 
@@ -29,9 +31,10 @@ dsh plugin --profile web add ./packages/workbench
 dsh web
 ```
 
-The other packages install the same way — `#path:packages/mobile-shell`,
-`#path:packages/cli-session`. Because `lib/` is versioned, it must be rebuilt and
-committed on every change or a git install serves stale code.
+The other packages install the same way — `github:ghbhiee/dsh-plugin-mobile-shell`,
+`github:ghbhiee/dsh-plugin-cli-session`. Because `lib/` is versioned, it must be
+rebuilt and committed on every change or a git install serves stale code; the
+standalone repos are mirrors synced from the monorepo (`scripts/sync-standalone.sh`).
 
 There are two launchers — one at the bottom of the sidebar, and one in the **top-right of the conversation header** (in an active session), so the panel is reachable from the session itself. The surface opens **docked to the right of the active session** by default — chat and files/terminal side by side — with a **Full frame ↔ Dock right** toggle in its header and a draggable divider to resize the split (arrow keys work on it too, and the width persists).
 
