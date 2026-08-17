@@ -7,22 +7,23 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { WorkbenchOverlay } from '../src/client/WorkbenchOverlay.tsx'
+import { requestOpenFile, requestToggle } from '../src/client/workbench-events.ts'
 
 /** The overlay reads several framework props. */
 type SessionsState = { current: string | undefined; byId: Record<string, { cwd?: string }> }
-type StoreState = { open: boolean; docked: boolean; dockWidth: number }
+type StoreState = { open: boolean; docked: boolean; dockWidth: number; pendingTarget: unknown }
 const Overlay = WorkbenchOverlay as unknown as (props: {
   useStore: <S>(selector: (state: StoreState) => S) => S
   useSessions: <S>(selector: (state: SessionsState) => S) => S
-  actions: { close: () => void; toggle: () => void; toggleDock: () => void; setDockWidth: (w: number) => void }
+  actions: { close: () => void; toggle: () => void; toggleDock: () => void; setDockWidth: (w: number) => void; openFile: (t: unknown) => void; consumeTarget: () => void }
   t: (key: string) => string
 }) => React.ReactElement | null
 
 function show(open: boolean, docked = false, sessions: SessionsState = { current: undefined, byId: {} }) {
-  const actions = { close: vi.fn(), toggle: vi.fn(), toggleDock: vi.fn(), setDockWidth: vi.fn() }
+  const actions = { close: vi.fn(), toggle: vi.fn(), toggleDock: vi.fn(), setDockWidth: vi.fn(), openFile: vi.fn(), consumeTarget: vi.fn() }
   const result = render(
     <Overlay
-      useStore={selector => selector({ open, docked, dockWidth: 460 })}
+      useStore={selector => selector({ open, docked, dockWidth: 460, pendingTarget: null })}
       useSessions={selector => selector(sessions)}
       actions={actions}
       t={key => key}
@@ -186,5 +187,20 @@ describe('docked versus full-frame', () => {
     expect(actions.setDockWidth).toHaveBeenLastCalledWith(460 + 16) // left widens
     fireEvent.keyDown(handle, { key: 'ArrowRight' })
     expect(actions.setDockWidth).toHaveBeenLastCalledWith(460 - 16) // right narrows
+  })
+})
+
+describe('the event bridge from session-scoped seats', () => {
+  it('toggles when a header launcher fires the toggle event', () => {
+    // Even while closed, the overlay is mounted and listening.
+    const { actions } = show(false)
+    requestToggle()
+    expect(actions.toggle).toHaveBeenCalledTimes(1)
+  })
+
+  it('opens a file when an artifact link fires the open-file event', () => {
+    const { actions } = show(true)
+    requestOpenFile({ root: 'workspace', path: 'report.html', name: 'report.html' })
+    expect(actions.openFile).toHaveBeenCalledWith({ root: 'workspace', path: 'report.html', name: 'report.html' })
   })
 })

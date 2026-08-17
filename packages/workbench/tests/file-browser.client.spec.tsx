@@ -144,6 +144,36 @@ describe('session directory', () => {
     await waitFor(() => { expect(screen.getByText('top.txt')).toBeDefined() })
     expect(calls.some(call => call.includes('list?root=workspace&path=sub'))).toBe(false)
   })
+
+  it('navigates to an open target and previews it, then reports it consumed', async () => {
+    // The plumbing an artifact link would drive: point the browser at a file in
+    // a subdirectory; it lists the parent, opens the preview, and clears the request.
+    const consumed = vi.fn()
+    render(
+      <FileBrowser
+        labels={labels}
+        openTarget={{ root: 'workspace', path: 'sub/inner.md', name: 'inner.md' }}
+        onTargetConsumed={consumed}
+      />,
+    )
+    await waitFor(() => { expect(calls.some(call => call.includes('list?root=workspace&path=sub'))).toBe(true) })
+    // The read path is URL-encoded (sub/inner.md → sub%2Finner.md), so match loosely.
+    await waitFor(() => { expect(calls.some(call => call.includes('/read') && call.includes('inner.md'))).toBe(true) })
+    expect(consumed).toHaveBeenCalled()
+  })
+
+  it('ignores an open target in a root it does not have, but still reports it', async () => {
+    const consumed = vi.fn()
+    render(
+      <FileBrowser
+        labels={labels}
+        openTarget={{ root: 'nope', path: 'x.md', name: 'x.md' }}
+        onTargetConsumed={consumed}
+      />,
+    )
+    await waitFor(() => { expect(consumed).toHaveBeenCalled() })
+    expect(calls.some(call => call.includes('read?root=nope'))).toBe(false)
+  })
 })
 
 describe('marking versus opening', () => {

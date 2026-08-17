@@ -10,6 +10,7 @@ import { rootForCwd } from './session-root.ts'
 import { FileActions, type FileActionLabels } from './FileActions.tsx'
 import { messageFor, type ErrorCopy } from './error-copy.ts'
 import { FilePreview } from './FilePreview.tsx'
+import type { PreviewTarget } from './store.ts'
 import css from './FileBrowser.module.css'
 
 /** Localized copy the browser needs. */
@@ -65,6 +66,10 @@ export interface FileBrowserProps {
   labels: FileBrowserLabels
   /** The active session's working directory; the browser opens here and follows switches. */
   sessionCwd?: string | undefined
+  /** A file to navigate to and preview, e.g. from an artifact link in the chat. */
+  openTarget?: PreviewTarget | null | undefined
+  /** Called once the browser has acted on {@link openTarget}, so it can be cleared. */
+  onTargetConsumed?: (() => void) | undefined
 }
 
 interface Marked {
@@ -97,7 +102,7 @@ function isNavigable(entry: ListEntry): boolean {
 }
 
 /** Two-pane file browser: listing on the left, preview on the right. */
-export function FileBrowser({ labels, sessionCwd }: FileBrowserProps) {
+export function FileBrowser({ labels, sessionCwd, openTarget, onTargetConsumed }: FileBrowserProps) {
   const [roots, setRoots] = useState<Root[]>([])
   const [rootId, setRootId] = useState('')
   const [path, setPath] = useState('')
@@ -167,6 +172,21 @@ export function FileBrowser({ labels, sessionCwd }: FileBrowserProps) {
       setMarked(null)
     }
   }, [roots, sessionCwd])
+
+  // Navigate to a file something outside asked to preview (an artifact link in
+  // the chat). It waits for the roots and only follows a target in a root it
+  // actually has; either way it reports back so the request is cleared once.
+  useEffect(() => {
+    if (openTarget === null || openTarget === undefined) return
+    if (roots.length === 0) return
+    if (roots.some(root => root.id === openTarget.root)) {
+      setRootId(openTarget.root)
+      setPath(parentOf(openTarget.path))
+      setPreview({ path: openTarget.path, name: openTarget.name })
+      setMarked({ path: openTarget.path, name: openTarget.name, isDirectory: false })
+    }
+    onTargetConsumed?.()
+  }, [openTarget, roots, onTargetConsumed])
 
   useEffect(() => {
     if (rootId === '') return

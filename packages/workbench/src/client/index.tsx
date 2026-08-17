@@ -11,7 +11,9 @@ import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
 import type {} from '@deepseek-ai/dsh-client-ui-layout/client'
 import type {} from '@deepseek-ai/dsh-client-ui-sidebar/client'
+import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
 import { WorkbenchLauncher } from './WorkbenchLauncher.tsx'
+import { WorkbenchHeaderLauncher } from './WorkbenchHeaderLauncher.tsx'
 import { WorkbenchOverlay } from './WorkbenchOverlay.tsx'
 import { workbenchStore } from './store.ts'
 import { en, zh, type WorkbenchLocaleKey } from './locales.ts'
@@ -48,4 +50,15 @@ export function apply(ctx: ClientContext): void {
     store: workbenchStore,
     locale: NS,
   }, WorkbenchLauncher))
+
+  // A second entry point in the conversation header's top-right, so the panel is
+  // reachable from the session itself, not only the sidebar footer. This seat is
+  // session-scoped, so it drives the root surface through the event bridge rather
+  // than binding the store (a handle mounts at one scope only).
+  ctx.slots.inject('conversation.session.header.utilities', () => ctx.slots.register({
+    name: 'conversation.session.header.utilities',
+    id: 'workbench',
+    order: 10,
+    locale: NS,
+  }, WorkbenchHeaderLauncher))
 }

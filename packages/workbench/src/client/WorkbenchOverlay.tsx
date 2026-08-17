@@ -7,6 +7,7 @@ import type { PropsLocale, PropsRuntime, PropsStore } from '@deepseek-ai/dsh-cli
 import type {} from '@deepseek-ai/dsh-client-runtime/client'
 import type { workbenchStore } from './store.ts'
 import { clampDockWidth } from './dock-width.ts'
+import { onWorkbenchRequests } from './workbench-events.ts'
 import { FileBrowser } from './FileBrowser.tsx'
 import { TerminalPane } from './TerminalPane.tsx'
 import css from './WorkbenchOverlay.module.css'
@@ -41,6 +42,9 @@ export function WorkbenchOverlay({ useStore, useSessions, actions, t }: Workbenc
   const open = useStore(state => state.open)
   const docked = useStore(state => state.docked)
   const dockWidth = useStore(state => state.dockWidth)
+  // A file an artifact link asked to preview; it lands the surface on the Files
+  // tab and hands the request to the browser, which clears it once navigated.
+  const pendingTarget = useStore(state => state.pendingTarget)
   // The directory of the session currently in view. It drives both the file
   // tree's root and where new terminals open, and re-renders this surface when
   // the user switches sessions. Transiently undefined before the host fills it.
@@ -93,6 +97,22 @@ export function WorkbenchOverlay({ useStore, useSessions, actions, t }: Workbenc
     if (event.key === 'ArrowLeft') { event.preventDefault(); actions.setDockWidth(dockWidth + RESIZE_STEP) }
     else if (event.key === 'ArrowRight') { event.preventDefault(); actions.setDockWidth(dockWidth - RESIZE_STEP) }
   }, [actions, dockWidth])
+
+  // A preview request arrives on the Files tab; make sure it is the one showing.
+  useEffect(() => {
+    if (pendingTarget !== null) setTab('files')
+  }, [pendingTarget])
+
+  const consumeTarget = useCallback(() => { actions.consumeTarget() }, [actions])
+
+  // Listen for the session-scoped seats (header launcher, artifact links), which
+  // cannot bind this root store and so drive it through the window-event bridge.
+  // The overlay is always mounted (it renders null while closed), so this is the
+  // right place to hold the subscription.
+  useEffect(() => onWorkbenchRequests({
+    toggle: () => { actions.toggle() },
+    openFile: (detail) => { actions.openFile(detail) },
+  }), [actions])
 
   // Escape closes the surface, except from inside the terminal: there it is a
   // keystroke the shell owns (vim, less, readline all use it).
@@ -204,6 +224,8 @@ export function WorkbenchOverlay({ useStore, useSessions, actions, t }: Workbenc
         >
           <FileBrowser
             sessionCwd={sessionCwd}
+            openTarget={pendingTarget}
+            onTargetConsumed={consumeTarget}
             labels={{
               loading: t('loading'),
               empty: t('empty'),
