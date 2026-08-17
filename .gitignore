@@ -1,4 +1,8 @@
 node_modules/
-lib/
 *.tgz
 .DS_Store
+# Built plugin output (lib/*.js) is committed so a package installs directly
+# from a git URL (github:owner/repo#path:packages/<name>); the source maps are
+# not — they are large and churn on every build.
+*.map
+tsconfig.tsbuildinfo
