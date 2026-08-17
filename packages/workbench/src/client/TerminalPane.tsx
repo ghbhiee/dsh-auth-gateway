@@ -34,6 +34,8 @@ export interface TerminalPaneLabels {
 export interface TerminalPaneProps {
   /** Whether the pane is on screen; terminals only fit while visible. */
   active: boolean
+  /** The active session's working directory; new shells open here. */
+  cwd?: string | undefined
   /** Localized copy. */
   labels: TerminalPaneLabels
 }
@@ -44,9 +46,12 @@ interface TerminalHandle {
   opened: boolean
 }
 
-function socketUrl(): string {
+function socketUrl(cwd?: string): string {
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-  return `${protocol}//${window.location.host}/plugins/workbench/pty`
+  const base = `${protocol}//${window.location.host}/plugins/workbench/pty`
+  // The first shell (and the one a reconnect brings up) opens in the session's
+  // directory; the host fences it, so an unusable value just falls back there.
+  return cwd === undefined || cwd === '' ? base : `${base}?cwd=${encodeURIComponent(cwd)}`
 }
 
 /**
@@ -72,9 +77,13 @@ function themeColors(): { foreground: string; background: string; cursor: string
 }
 
 /** Render the terminal pane: a tab strip plus the active xterm surface. */
-export function TerminalPane({ active, labels }: TerminalPaneProps) {
+export function TerminalPane({ active, cwd, labels }: TerminalPaneProps) {
   const hostRef = useRef<HTMLDivElement | null>(null)
   const socketRef = useRef<WebSocket | null>(null)
+  // Read through a ref so a session switch updates where the *next* shell opens
+  // without tearing down the socket (and the running shells) to reconnect.
+  const cwdRef = useRef(cwd)
+  cwdRef.current = cwd
   const termsRef = useRef(new Map<string, TerminalHandle>())
   const activeIdRef = useRef<string | null>(null)
   const [state, setState] = useState<TerminalState>(EMPTY_STATE)
@@ -175,7 +184,7 @@ export function TerminalPane({ active, labels }: TerminalPaneProps) {
     }
 
     const connect = (): void => {
-      const socket = new WebSocket(socketUrl())
+      const socket = new WebSocket(socketUrl(cwdRef.current))
       socketRef.current = socket
 
       socket.onopen = () => {
@@ -291,7 +300,7 @@ export function TerminalPane({ active, labels }: TerminalPaneProps) {
             <button type="button" className={css.tabClose} aria-label={labels.closeTab} onClick={() => { closeTab(tab.id) }}>×</button>
           </div>
         ))}
-        <button type="button" className={css.newTab} aria-label={labels.newTab} onClick={() => { send({ type: 'create' }) }}>+</button>
+        <button type="button" className={css.newTab} aria-label={labels.newTab} onClick={() => { send({ type: 'create', cwd }) }}>+</button>
       </div>
       <div className={css.surface} ref={hostRef} />
       {connected ? null : (

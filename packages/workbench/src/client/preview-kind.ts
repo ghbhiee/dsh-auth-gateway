@@ -20,7 +20,7 @@ const NAMED_FILES: Record<string, string> = {
 }
 
 /** How the preview pane should render a file. */
-export type PreviewKind = 'image' | 'markdown' | 'text'
+export type PreviewKind = 'image' | 'markdown' | 'html' | 'text'
 
 function extensionOf(name: string): string {
   const dot = name.lastIndexOf('.')
@@ -36,7 +36,35 @@ export function previewKind(name: string): PreviewKind {
   const ext = extensionOf(name)
   if (IMAGE_EXTENSIONS.has(ext)) return 'image'
   if (ext === 'md' || ext === 'markdown') return 'markdown'
+  // SVG stays an image (rendered through <img>, which never runs its scripts);
+  // only real HTML documents get the framed renderer below.
+  if (ext === 'html' || ext === 'htm') return 'html'
   return 'text'
+}
+
+/**
+ * The `sandbox` attribute for the HTML preview iframe.
+ *
+ * This is the whole security boundary of the HTML renderer, so it lives here
+ * where it can be tested on its own. A workspace is full of files nobody here
+ * wrote — a cloned repo, a package's assets, whatever an agent just generated —
+ * and rendering one as a document on the app's own origin is exactly the
+ * stored-XSS hole the `bytes` route was hardened against (it would reach the
+ * app's storage and this very API, the PTY route included).
+ *
+ * The framed document therefore always runs in an opaque origin: `allow-scripts`
+ * is the *only* token ever granted, and never together with `allow-same-origin`
+ * — that pair is what re-opens the hole, because a same-origin sandboxed frame
+ * can reach back into the parent. Inert mode (the default) grants nothing, so no
+ * script runs at all. With scripts opted in, they run walled off from the app:
+ * no access to its DOM, cookies, or storage, no top-frame navigation, and —
+ * because the origin is opaque and the API sets no CORS headers — no readable
+ * fetch of the workbench routes either.
+ * @param runScripts - whether the user opted into running the page's scripts.
+ * @returns the sandbox token string; `''` (fully locked down) when inert.
+ */
+export function htmlSandbox(runScripts: boolean): string {
+  return runScripts ? 'allow-scripts' : ''
 }
 
 /**

@@ -7,6 +7,9 @@
  */
 
 import { createServer, type Server } from 'node:http'
+import { mkdir, mkdtemp, realpath, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import WebSocket from 'ws'
 import type { Context } from '@deepseek-ai/cordis'
@@ -38,8 +41,8 @@ interface Client {
   close: () => Promise<void>
 }
 
-async function connect(): Promise<Client> {
-  const socket = new WebSocket(url)
+async function connect(target: string = url): Promise<Client> {
+  const socket = new WebSocket(target)
   const log: string[] = []
   const control: Record<string, unknown>[] = []
   socket.on('message', (raw: Buffer) => {
@@ -80,7 +83,7 @@ async function connect(): Promise<Client> {
 }
 
 beforeAll(async () => {
-  const gateway = createPtyGateway(fakeCtx(), { loopbackOnly: true, shell: '/bin/bash' })
+  const gateway = createPtyGateway(fakeCtx(), { loopbackOnly: true, shell: '/bin/bash', readRoots: [] })
   dispose = gateway.dispose
   server = createServer()
   server.on('upgrade', (req, socket, head) => { gateway.handler(req, socket, head) })
@@ -184,6 +187,69 @@ describe('gateway protocol', () => {
   })
 })
 
+describe('opening in a directory', () => {
+  // The browser hands the terminal the session's cwd. It arrives untrusted —
+  // over the handshake URL for the first shell, in the create message for a new
+  // tab — so it is fenced exactly like a file path: canonical, inside a root, or
+  // rejected in favour of the workspace root. Never opened blindly.
+  let fenceRoot: string
+  let cwdServer: Server
+  let cwdUrl: string
+  let cwdDispose: () => void
+  const rx = (literal: string): RegExp => new RegExp(literal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+
+  beforeAll(async () => {
+    fenceRoot = await realpath(await mkdtemp(join(tmpdir(), 'wb-pty-cwd-')))
+    await mkdir(join(fenceRoot, 'project'), { recursive: true })
+    const gateway = createPtyGateway(fakeCtx(), { loopbackOnly: true, shell: '/bin/bash', readRoots: [fenceRoot] })
+    cwdDispose = gateway.dispose
+    cwdServer = createServer()
+    cwdServer.on('upgrade', (req, socket, head) => { gateway.handler(req, socket, head) })
+    await new Promise<void>(resolve => cwdServer.listen(0, '127.0.0.1', resolve))
+    const address = cwdServer.address()
+    if (address === null || typeof address === 'string') throw new Error('no port')
+    cwdUrl = `ws://127.0.0.1:${String(address.port)}/plugins/workbench/pty`
+  })
+
+  afterAll(async () => {
+    cwdDispose()
+    await new Promise<void>(resolve => cwdServer.close(() => { resolve() }))
+    await rm(fenceRoot, { recursive: true, force: true })
+  })
+
+  it('opens the first shell in the cwd from the handshake url', async () => {
+    const target = join(fenceRoot, 'project')
+    const client = await connect(`${cwdUrl}?cwd=${encodeURIComponent(target)}`)
+    await client.waitForControl('created')
+    client.socket.send('pwd -P\r')
+    await expect(client.waitForOutput(rx(target))).resolves.toContain(target)
+    await client.close()
+  })
+
+  it('opens a + tab in the cwd from the create message', async () => {
+    const target = join(fenceRoot, 'project')
+    const client = await connect(cwdUrl)
+    await client.waitForControl('created')
+    client.socket.send(JSON.stringify({ type: 'create', cwd: target }))
+    // The new tab becomes active; its pwd is the requested directory.
+    await client.waitForOutput(/\$|#|%/, 5000).catch(() => undefined)
+    client.socket.send('pwd -P\r')
+    await expect(client.waitForOutput(rx(target))).resolves.toContain(target)
+    await client.close()
+  })
+
+  it('refuses a cwd outside the fence and falls back to the workspace root', async () => {
+    // /usr exists but is outside the fence (workspace root plus the tmp root), so
+    // the shell must land in the workspace root, not there.
+    const workspace = await realpath(process.cwd())
+    const client = await connect(`${cwdUrl}?cwd=${encodeURIComponent('/usr')}`)
+    await client.waitForControl('created')
+    client.socket.send('pwd -P\r')
+    await expect(client.waitForOutput(rx(workspace))).resolves.toContain(workspace)
+    await client.close()
+  })
+})
+
 describe('origin gate', () => {
   // This socket is a shell. A WebSocket handshake is not stopped by the
   // same-origin policy, so without this gate a page the user is merely visiting
@@ -227,7 +293,7 @@ describe('origin gate', () => {
 describe('teardown', () => {
   /** A gateway of its own, so disposing it cannot disturb the shared suite. */
   async function ownGateway() {
-    const gateway = createPtyGateway(fakeCtx(), { loopbackOnly: true, shell: '/bin/bash' })
+    const gateway = createPtyGateway(fakeCtx(), { loopbackOnly: true, shell: '/bin/bash', readRoots: [] })
     const httpServer = createServer()
     httpServer.on('upgrade', (req, socket, head) => { gateway.handler(req, socket, head) })
     await new Promise<void>(resolve => httpServer.listen(0, '127.0.0.1', resolve))

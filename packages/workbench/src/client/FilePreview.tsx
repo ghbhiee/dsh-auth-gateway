@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { MarkdownText, ReadBlock } from '@deepseek-ai/dsh-client-ui-primitives'
 import { bytesUrl, fetchStat, fetchText, writeText, WorkbenchApiError } from './api.ts'
-import { languageOf, previewKind } from './preview-kind.ts'
+import { htmlSandbox, languageOf, previewKind } from './preview-kind.ts'
 import css from './FilePreview.module.css'
 
 /**
@@ -38,6 +38,14 @@ export interface FilePreviewProps {
     changedOnDisk: string
     /** Button that discards the draft and re-reads the current file. */
     reload: string
+    /** Switch an HTML preview from the rendered frame to its source. */
+    htmlViewSource: string
+    /** Switch an HTML preview back from source to the rendered frame. */
+    htmlViewRendered: string
+    /** Opt the HTML frame into running its scripts (still origin-isolated). */
+    htmlEnableScripts: string
+    /** Turn the opted-in scripts back off. */
+    htmlDisableScripts: string
   }
 }
 
@@ -52,11 +60,24 @@ interface TextState {
 /** Render one file, choosing the renderer from its extension. */
 export function FilePreview({ root, path, name, writeEnabled, onSaved, labels }: FilePreviewProps) {
   const kind = previewKind(name)
+  const isHtml = kind === 'html'
   const [state, setState] = useState<TextState>({ status: 'loading', content: '', message: '', version: null })
   const [draft, setDraft] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [savedAt, setSavedAt] = useState(0)
   const [changedOnDisk, setChangedOnDisk] = useState(false)
+  /** HTML only: show the source instead of the rendered frame. */
+  const [htmlSource, setHtmlSource] = useState(false)
+  /** HTML only: whether the frame may run its scripts (origin-isolated). */
+  const [htmlScripts, setHtmlScripts] = useState(false)
+
+  // Every file starts rendered and inert. Scripts are a per-file opt-in, so a
+  // new file must never inherit the last one's "scripts on" — that default is
+  // the safe one, and switching files silently keeping it would not be.
+  useEffect(() => {
+    setHtmlSource(false)
+    setHtmlScripts(false)
+  }, [root, path])
 
   useEffect(() => {
     if (kind === 'image') return
@@ -160,6 +181,23 @@ export function FilePreview({ root, path, name, writeEnabled, onSaved, labels }:
       {state.message === '' ? null : <span className={css.error}>{state.message}</span>}
       {changedOnDisk && draft !== null ? <span className={css.error}>{labels.changedOnDisk}</span> : null}
       {savedAt !== 0 && draft === null ? <span className={css.saved}>{labels.saved}</span> : null}
+      {isHtml && draft === null ? (
+        <>
+          <button type="button" className={css.button} onClick={() => { setHtmlSource(source => !source) }}>
+            {htmlSource ? labels.htmlViewRendered : labels.htmlViewSource}
+          </button>
+          {htmlSource ? null : (
+            <button
+              type="button"
+              className={css.button}
+              aria-pressed={htmlScripts}
+              onClick={() => { setHtmlScripts(scripts => !scripts) }}
+            >
+              {htmlScripts ? labels.htmlDisableScripts : labels.htmlEnableScripts}
+            </button>
+          )}
+        </>
+      ) : null}
       {writeEnabled && draft === null
         ? <button type="button" className={css.button} onClick={() => { setDraft(state.content) }}>{labels.edit}</button>
         : null}
@@ -192,6 +230,31 @@ export function FilePreview({ root, path, name, writeEnabled, onSaved, labels }:
 
   if (state.content === '') {
     return <div className={css.editor}>{toolbar}<div className={css.notice}>{labels.empty}</div></div>
+  }
+
+  // HTML renders in a sandboxed frame rather than as source. The frame is the
+  // whole trust boundary: srcDoc gives it an opaque origin, and `htmlSandbox`
+  // never grants `allow-same-origin`, so even a workspace page full of
+  // <script> cannot reach the app it is being viewed inside. "View source"
+  // drops back to the read block; Edit (below) still edits the raw markup.
+  if (isHtml && !htmlSource) {
+    return (
+      <div className={css.editor}>
+        {toolbar}
+        <iframe
+          // Remount when the mode flips: mutating `sandbox` on a live srcdoc
+          // frame does not re-load it, so the document would keep whatever
+          // sandbox it first loaded under. A fresh element loads the markup
+          // under the current sandbox, which is the whole point of the toggle.
+          key={htmlScripts ? 'scripts' : 'inert'}
+          className={css.htmlFrame}
+          title={name}
+          srcDoc={state.content}
+          sandbox={htmlSandbox(htmlScripts)}
+          referrerPolicy="no-referrer"
+        />
+      </div>
+    )
   }
 
   // Markdown has no windowing of its own, so an enormous document falls back

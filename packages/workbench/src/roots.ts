@@ -103,6 +103,41 @@ export function composeRoots(workspaceRoot: string, extraRoots: readonly string[
 }
 
 /**
+ * Resolve an absolute directory the caller wants to start in, keeping it inside
+ * the fence.
+ *
+ * The browser hands the terminal a working directory — the session's cwd — and
+ * a working directory the client chose is exactly as untrusted as a `path`
+ * query, so it goes through the same two checks: it must be absolute, and its
+ * `realpath` must land within some allowed root. Returning the canonical path
+ * (not the caller's spelling) is deliberate: a symlinked cwd is followed here,
+ * before it reaches `node-pty.spawn`, so a shell can never open outside the
+ * fence.
+ * @param roots - the allowed roots.
+ * @param candidate - the absolute directory requested.
+ * @returns the canonical path when it is inside a root, otherwise null.
+ */
+export async function resolveCwdWithinRoots(roots: readonly ReadRoot[], candidate: string): Promise<string | null> {
+  if (typeof candidate !== 'string' || candidate === '' || !isAbsolute(candidate)) return null
+  let canonical: string
+  try {
+    canonical = await realpath(candidate)
+  } catch {
+    return null
+  }
+  for (const root of roots) {
+    let canonicalRoot: string
+    try {
+      canonicalRoot = await realpath(root.path)
+    } catch {
+      continue
+    }
+    if (isWithin(canonicalRoot, canonical)) return canonical
+  }
+  return null
+}
+
+/**
  * Resolve a request's `root` + `path` pair to an absolute path inside that root.
  *
  * Two layers on purpose: a lexical reject of traversal input, then a

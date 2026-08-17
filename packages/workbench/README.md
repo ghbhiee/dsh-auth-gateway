@@ -19,9 +19,9 @@ dsh plugin --profile web add ./packages/workbench
 dsh web
 ```
 
-The launcher lands at the bottom of the sidebar; the surface opens over the whole frame.
+The launcher lands at the bottom of the sidebar. The surface opens **docked to the right of the active session** by default — chat and files/terminal side by side — with a **Full frame ↔ Dock right** toggle in its header and a draggable divider to resize the split (arrow keys work on it too, and the width persists).
 
-It is a labelled `dialog` that takes focus when it opens and closes on Escape — except over the terminal, where Escape belongs to the shell (vim, less, readline all want it).
+Full-frame, it is a labelled `dialog` that takes focus when it opens; docked, it is a `complementary` region beside a still-usable conversation, so it does not grab focus away. Escape closes it in either mode — except over the terminal, where Escape belongs to the shell (vim, less, readline all want it).
 
 ## Configure
 
@@ -73,8 +73,10 @@ Every mutating route is refused outright unless `writeEnabled` is on, and then h
 
 Terminal protocol — a bare string is keystrokes in, terminal output back; JSON is control:
 
-- client → server: `{type:'create'}`, `{type:'switch',sessionId}`, `{type:'close',sessionId}`, `{type:'resize',cols,rows}`
+- client → server: `{type:'create'[,cwd]}`, `{type:'switch',sessionId}`, `{type:'close',sessionId}`, `{type:'resize',cols,rows}`
 - server → client: `{type:'created',id,pid,shell}`, `{type:'switched',id}`, `{type:'exited',id,exitCode}`, `{type:'error',message}`
+
+The first shell's directory rides on the handshake URL (`…/pty?cwd=<dir>`); a later tab carries its `cwd` on `create`. Either way the host fences the directory (below) before spawning, so an unusable value falls back to the workspace root rather than being obeyed.
 
 ## Design notes
 
@@ -85,6 +87,12 @@ Terminal protocol — a bare string is keystrokes in, terminal output back; JSON
 **Filename search normalizes Unicode.** macOS stores names decomposed (NFD) while people type the composed form, so `café` would miss a file literally called café; both sides are normalized to NFC before matching.
 
 **Workspace bytes cannot script the app.** A workspace is full of files nobody on this side wrote — a cloned repo, a package's assets, whatever an agent just generated — and `bytes` hands them back on the app's own origin. An SVG is a document, not merely a picture: navigating to one containing `<script>` used to run it as the app, with reach into its storage and back into this API, the PTY route included (confirmed in a browser before it was fixed). The route now sends `Content-Security-Policy: default-src 'none'; …; sandbox` and `X-Content-Type-Options: nosniff`, so the script is refused outright and the document lands in an opaque origin either way. The in-app preview is unaffected — it embeds these through `<img>`, which never ran scripts. HTML is not in the MIME allowlist at all, so a workspace `.html` downloads rather than renders.
+
+**HTML previews in a sandboxed frame, inert by default.** `bytes` keeps refusing to serve HTML as a document; the preview renders it a different way, and the `<iframe sandbox>` is the whole trust boundary. The file's text goes into `srcdoc`, so the frame always has an opaque origin, and inert is the default: `sandbox=""` grants nothing, so no script in the page runs at all — you see structure and inline styles. A per-file **Enable scripts** opt-in switches to `sandbox="allow-scripts"`, and never `allow-same-origin` alongside it — that pair is exactly what would let the framed page reach back into the app, reopening the hole above. Even with scripts on, the opaque origin means the page cannot touch the app's DOM, cookies, or storage, cannot navigate the top frame, and cannot read the workbench API (no CORS on it); confirmed in a browser, a page that tried to set the app's title and write its `localStorage` did neither, while its own body script ran. Toggling the opt-in remounts the frame, because changing `sandbox` on a live `srcdoc` frame does not re-load it. **View source** drops back to the read block, and Edit still edits the raw markup.
+
+**Rooted at the session's directory.** The file tree opens in the directory of the session you are viewing, and re-roots when you switch sessions; the terminal spawns its shell there too. The directory comes from the client's own session store (`useSessions` — nothing new is fetched) and is mapped onto whichever readable root contains it, so the browser only ever asks the host for a root+path the fence already allows. The cwd the client asks the *terminal* for is as untrusted as any path: `resolveCwdWithinRoots` requires it to be absolute and to `realpath` inside an allowed root (canonicalized, so a symlinked cwd is followed before it reaches `node-pty`), and anything else falls back to the workspace root. A session whose directory the fence does not cover simply opens at the workspace root instead of failing.
+
+**Docked without patching the layout.** The right-hand dock reserves a strip on the frame rather than floating over the chat. The overlay component marks the AppFrame (`data-workbench-docked`) and publishes the width as a `--wb-dock-width` custom property; a global stylesheet — keyed on that attribute and the layout's own structural contract, the conversation being the frame's **second grid child**, never a compiled CSS-Module hash class (those change every upstream build) — pushes the conversation column in by that width and pins the panel to the freed strip. The sidebar's own width is left alone, so it is a true split, not an overlay. Full-frame mode sets none of it, and the panel keeps its `inset: 0` and covers the frame as before. Same anchor and same discipline mobile-shell uses for its drawer.
 
 **A truncated listing still shows the directories.** The cap applies after sorting, not to the raw stream from the filesystem. Cutting the stream instead would return whichever names the filesystem happened to yield first — arbitrary, and sorted afterwards so it merely looked ordered — which in a directory past the cap could drop every subdirectory, and a folder you cannot see is one you cannot open. Names and kinds are collected first (no syscall each), then sorted and cut; only the survivors are stat'd, so the expensive pass stays capped either way. A 20 000-entry directory lists in under 50 ms.
 
@@ -149,6 +157,6 @@ With `writeEnabled` on, the browser half grows an action bar (new file, new fold
 - **No remote runtimes.** Spawning goes straight to node-pty instead of `ctx.subprocess.spawnTerminal`, because that seam's handle exposes no `resize()` (rows/cols are fixed at spawn). Terminals therefore only work where the host process runs.
 - **Reconnecting does not restore the old shells.** They are gone with the socket; you get a fresh one, and scrollback from before the drop is lost.
 - **Refreshing is polling, not watching.** The listing and any open preview re-check every five seconds while visible, and immediately when the tab regains focus; there is no filesystem watch, so a change can take up to five seconds to show. Searching pauses the listing poll.
-- **HTML files preview as source,** not as rendered pages.
+- **HTML previews are sandboxed and, by default, inert.** Scripts are blocked unless you opt in per file, and even then run walled off in an opaque origin. Because the frame has no base URL and no same-origin access, a page's relative or external resources — its own linked CSS/JS/images — may not load: it is a structure-and-inline-styles preview, not a live site. Use **View source** for the markup.
 - **No Range requests.** `bytes` sends whole files, so large media cannot be seeked; it is meant for images and small downloads.
 - **Only UTF-8 text is displayable.** Other encodings are detected and refused rather than transcoded; there is no encoding picker.

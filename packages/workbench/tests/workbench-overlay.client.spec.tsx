@@ -8,17 +8,25 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { WorkbenchOverlay } from '../src/client/WorkbenchOverlay.tsx'
 
-/** The overlay reads three of its framework props. */
+/** The overlay reads several framework props. */
+type SessionsState = { current: string | undefined; byId: Record<string, { cwd?: string }> }
+type StoreState = { open: boolean; docked: boolean; dockWidth: number }
 const Overlay = WorkbenchOverlay as unknown as (props: {
-  useStore: (selector: (state: { open: boolean }) => boolean) => boolean
-  actions: { close: () => void; toggle: () => void }
+  useStore: <S>(selector: (state: StoreState) => S) => S
+  useSessions: <S>(selector: (state: SessionsState) => S) => S
+  actions: { close: () => void; toggle: () => void; toggleDock: () => void; setDockWidth: (w: number) => void }
   t: (key: string) => string
 }) => React.ReactElement | null
 
-function show(open: boolean) {
-  const actions = { close: vi.fn(), toggle: vi.fn() }
+function show(open: boolean, docked = false, sessions: SessionsState = { current: undefined, byId: {} }) {
+  const actions = { close: vi.fn(), toggle: vi.fn(), toggleDock: vi.fn(), setDockWidth: vi.fn() }
   const result = render(
-    <Overlay useStore={selector => selector({ open })} actions={actions} t={key => key} />,
+    <Overlay
+      useStore={selector => selector({ open, docked, dockWidth: 460 })}
+      useSessions={selector => selector(sessions)}
+      actions={actions}
+      t={key => key}
+    />,
   )
   return { actions, ...result }
 }
@@ -129,5 +137,54 @@ describe('tabs', () => {
     expect(container.querySelector('[data-workbench-terminal]')?.className).not.toContain('Hidden')
     fireEvent.keyDown(tablist, { key: 'ArrowLeft' })
     expect(container.querySelector('[data-workbench-terminal]')?.className).toContain('Hidden')
+  })
+})
+
+describe('docked versus full-frame', () => {
+  it('is a complementary region beside the conversation, not a dialog', () => {
+    // Docked, the panel sits next to a still-usable conversation, so a dialog
+    // role (which implies the rest is inert) would misdescribe it.
+    show(true, true)
+    expect(screen.queryByRole('dialog')).toBeNull()
+    // The file list is itself an <aside>, so name the panel to single it out.
+    expect(screen.getByRole('complementary', { name: 'title' })).toBeDefined()
+  })
+
+  it('is a dialog when full-frame', () => {
+    show(true, false)
+    expect(screen.getByRole('dialog')).toBeDefined()
+  })
+
+  it('marks the panel so the dock stylesheet can position it', () => {
+    const { container } = show(true, true)
+    expect(container.querySelector('[data-workbench-panel]')).not.toBeNull()
+  })
+
+  it('offers a resize separator only while docked', () => {
+    const { container } = show(true, true)
+    expect(container.querySelector('[role="separator"]')).not.toBeNull()
+    cleanup()
+    const { container: full } = show(true, false)
+    expect(full.querySelector('[role="separator"]')).toBeNull()
+  })
+
+  it('labels the toggle by the mode it switches to, and toggles on click', () => {
+    const { actions } = show(true, true)
+    fireEvent.click(screen.getByText('fullFrame')) // docked now, so offers full frame
+    expect(actions.toggleDock).toHaveBeenCalledTimes(1)
+  })
+
+  it('offers to dock when full-frame', () => {
+    show(true, false)
+    expect(screen.getByText('dockRight')).toBeDefined()
+  })
+
+  it('resizes with the arrow keys on the separator', () => {
+    const { actions } = show(true, true)
+    const handle = screen.getByRole('separator')
+    fireEvent.keyDown(handle, { key: 'ArrowLeft' })
+    expect(actions.setDockWidth).toHaveBeenLastCalledWith(460 + 16) // left widens
+    fireEvent.keyDown(handle, { key: 'ArrowRight' })
+    expect(actions.setDockWidth).toHaveBeenLastCalledWith(460 - 16) // right narrows
   })
 })

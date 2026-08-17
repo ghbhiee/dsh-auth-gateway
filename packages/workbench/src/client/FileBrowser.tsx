@@ -6,6 +6,7 @@ import {
   renameEntry, searchFiles, uploadFile, writeText, type ListEntry, type Root, type SearchHit,
 } from './api.ts'
 import { formatSize } from './preview-kind.ts'
+import { rootForCwd } from './session-root.ts'
 import { FileActions, type FileActionLabels } from './FileActions.tsx'
 import { messageFor, type ErrorCopy } from './error-copy.ts'
 import { FilePreview } from './FilePreview.tsx'
@@ -31,6 +32,14 @@ export interface FileBrowserLabels extends FileActionLabels {
   changedOnDisk: string
   /** Button that discards the draft and re-reads the current file. */
   reload: string
+  /** Switch an HTML preview from the rendered frame to its source. */
+  htmlViewSource: string
+  /** Switch an HTML preview back from source to the rendered frame. */
+  htmlViewRendered: string
+  /** Opt the HTML frame into running its scripts (still origin-isolated). */
+  htmlEnableScripts: string
+  /** Turn the opted-in scripts back off. */
+  htmlDisableScripts: string
   /** Localized copy for host error codes. */
   errors: ErrorCopy
   /** Shown when the search walk stopped at a limit rather than finishing. */
@@ -54,6 +63,8 @@ export interface FileBrowserLabels extends FileActionLabels {
 /** Props for the browser body. */
 export interface FileBrowserProps {
   labels: FileBrowserLabels
+  /** The active session's working directory; the browser opens here and follows switches. */
+  sessionCwd?: string | undefined
 }
 
 interface Marked {
@@ -86,7 +97,7 @@ function isNavigable(entry: ListEntry): boolean {
 }
 
 /** Two-pane file browser: listing on the left, preview on the right. */
-export function FileBrowser({ labels }: FileBrowserProps) {
+export function FileBrowser({ labels, sessionCwd }: FileBrowserProps) {
   const [roots, setRoots] = useState<Root[]>([])
   const [rootId, setRootId] = useState('')
   const [path, setPath] = useState('')
@@ -110,13 +121,16 @@ export function FileBrowser({ labels }: FileBrowserProps) {
   const [searchTruncated, setSearchTruncated] = useState(false)
 
   const refresh = useCallback(() => { setReloadToken(token => token + 1) }, [])
+  /** True once the browser has chosen its first root, so a later session switch re-roots but a first render does not race. */
+  const rootedRef = useRef(false)
+  /** The session cwd the current root was chosen for, so an unchanged cwd never yanks manual navigation. */
+  const appliedCwdRef = useRef<string | undefined>(undefined)
 
   useEffect(() => {
     let cancelled = false
     fetchRoots().then((list) => {
       if (cancelled) return
       setRoots(list)
-      setRootId(current => (current === '' ? list[0]?.id ?? '' : current))
     }).catch((error: unknown) => {
       if (!cancelled) {
         setStatus('error')
@@ -128,6 +142,31 @@ export function FileBrowser({ labels }: FileBrowserProps) {
     }).catch(() => { /* capabilities are advisory; the host enforces them anyway */ })
     return () => { cancelled = true }
   }, [])
+
+  // Root at the active session's directory, and re-root when the user switches
+  // sessions. Keyed on the cwd, not on navigation state, so browsing inside a
+  // session is left alone — only a genuine session change moves the root. A cwd
+  // the host fence does not cover resolves to null: the first load falls back to
+  // the first root, and a later switch to such a session keeps the current view.
+  useEffect(() => {
+    if (roots.length === 0) return
+    const target = rootForCwd(roots, sessionCwd)
+    if (!rootedRef.current) {
+      rootedRef.current = true
+      appliedCwdRef.current = sessionCwd
+      if (target !== null) { setRootId(target.rootId); setPath(target.path) }
+      else setRootId(roots[0]?.id ?? '')
+      return
+    }
+    if (sessionCwd === appliedCwdRef.current) return
+    appliedCwdRef.current = sessionCwd
+    if (target !== null) {
+      setRootId(target.rootId)
+      setPath(target.path)
+      setPreview(null)
+      setMarked(null)
+    }
+  }, [roots, sessionCwd])
 
   useEffect(() => {
     if (rootId === '') return
@@ -417,6 +456,10 @@ export function FileBrowser({ labels }: FileBrowserProps) {
                 staleVersion: labels.staleVersion,
                 changedOnDisk: labels.changedOnDisk,
                 reload: labels.reload,
+                htmlViewSource: labels.htmlViewSource,
+                htmlViewRendered: labels.htmlViewRendered,
+                htmlEnableScripts: labels.htmlEnableScripts,
+                htmlDisableScripts: labels.htmlDisableScripts,
               }}
             />
           )}

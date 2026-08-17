@@ -68,4 +68,17 @@ describe('when terminals are available', () => {
     expect(opened[0]).toContain('/plugins/workbench/pty')
     expect(screen.queryByText('Terminals are off here')).toBeNull()
   })
+
+  it('carries the session cwd into the handshake url', async () => {
+    render(<TerminalPane active cwd="/ws/proj dir" labels={labels} />)
+    await waitFor(() => { expect(opened).toHaveLength(1) })
+    // Encoded, so a directory with a space (or any reserved character) survives.
+    expect(opened[0]).toContain(`cwd=${encodeURIComponent('/ws/proj dir')}`)
+  })
+
+  it('omits cwd from the url when there is no session directory', async () => {
+    render(<TerminalPane active labels={labels} />)
+    await waitFor(() => { expect(opened).toHaveLength(1) })
+    expect(opened[0]).not.toContain('cwd=')
+  })
 })

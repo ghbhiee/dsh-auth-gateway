@@ -17,6 +17,7 @@ const labels: FileBrowserLabels = {
   namePlaceholder: 'Name', dropHint: 'Drop to upload',
   searchPlaceholder: 'Search filenames', noMatches: 'No matching files.',
   searchTruncated: 'Search stopped early', brokenLink: 'broken link', replaced: 'Replaced', uploadFailed: 'Failed', staleVersion: 'Changed on disk', changedOnDisk: 'Changed on disk', reload: 'Reload',
+  htmlViewSource: 'View source', htmlViewRendered: 'View rendered', htmlEnableScripts: 'Enable scripts', htmlDisableScripts: 'Disable scripts',
   errors: {
     destination_exists: 'Already there', protected_file: 'Protected file', protected_path: 'Protected directory',
     sandbox_read_only: 'Read-only sandbox', write_disabled: 'Writing is off', outside_writable_root: 'Not writable here',
@@ -116,6 +117,32 @@ describe('listing', () => {
     await waitFor(() => { expect(screen.getByText('sub')).toBeDefined() })
     fireEvent.click(screen.getByText('sub'))
     await waitFor(() => { expect(calls.some(call => call.includes('list?root=workspace&path=sub'))).toBe(true) })
+  })
+})
+
+describe('session directory', () => {
+  it('roots the browser at the active session cwd on load', async () => {
+    // cwd /ws/sub sits under the /ws root, so the browser opens straight into
+    // sub rather than at the root.
+    render(<FileBrowser labels={labels} sessionCwd="/ws/sub" />)
+    await waitFor(() => { expect(screen.getByText('inner.md')).toBeDefined() })
+    expect(calls.some(call => call.includes('list?root=workspace&path=sub'))).toBe(true)
+  })
+
+  it('re-roots when the user switches sessions', async () => {
+    const { rerender } = render(<FileBrowser labels={labels} sessionCwd="/ws/sub" />)
+    await waitFor(() => { expect(screen.getByText('inner.md')).toBeDefined() })
+    // Switch to a session whose cwd is the root itself.
+    rerender(<FileBrowser labels={labels} sessionCwd="/ws" />)
+    await waitFor(() => { expect(screen.getByText('top.txt')).toBeDefined() })
+  })
+
+  it('falls back to the first root when the cwd is outside every root', async () => {
+    // A session started somewhere the fence does not reach: show the root, not
+    // a directory the host would refuse to list.
+    render(<FileBrowser labels={labels} sessionCwd="/elsewhere/project" />)
+    await waitFor(() => { expect(screen.getByText('top.txt')).toBeDefined() })
+    expect(calls.some(call => call.includes('list?root=workspace&path=sub'))).toBe(false)
   })
 })
 

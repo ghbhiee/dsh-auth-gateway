@@ -92,3 +92,13 @@
 .textarea:focus {
   outline: none;
 }
+
+.htmlFrame {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  border: none;
+  /* A neutral canvas for the framed document. It paints over this if it sets
+     its own background; otherwise the app's base surface stands in. */
+  background: var(--dsw-alias-bg-base);
+}

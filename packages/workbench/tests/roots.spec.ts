@@ -4,7 +4,8 @@ import { mkdtemp, mkdir, symlink, writeFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { ApiError, composeRoots, isWithin, resolveInRoot, validateReadRoots } from '../src/roots.ts'
+import { realpath } from 'node:fs/promises'
+import { ApiError, composeRoots, isWithin, resolveCwdWithinRoots, resolveInRoot, validateReadRoots } from '../src/roots.ts'
 
 let root: string
 let outside: string
@@ -95,6 +96,41 @@ describe('resolveInRoot', () => {
   it('404s a create target whose parent does not exist', async () => {
     await expect(resolveInRoot(roots, 'workspace', 'absent-dir/new.txt', { mustExist: false }))
       .rejects.toMatchObject({ code: 'not_found' })
+  })
+})
+
+describe('resolveCwdWithinRoots', () => {
+  // The terminal spawns in whatever this returns. It is the fence for a
+  // client-chosen working directory, so a symlink that escapes the root, a
+  // relative spelling, or a directory that is not there must all resolve to
+  // null — the caller then falls back to the workspace root, never the request.
+  it('returns the canonical path for a directory inside a root', async () => {
+    expect(await resolveCwdWithinRoots(roots, join(root, 'sub'))).toBe(await realpath(join(root, 'sub')))
+  })
+
+  it('accepts the root itself', async () => {
+    expect(await resolveCwdWithinRoots(roots, root)).toBe(await realpath(root))
+  })
+
+  it('rejects a directory outside every root', async () => {
+    expect(await resolveCwdWithinRoots(roots, outside)).toBeNull()
+  })
+
+  it('rejects a symlinked directory that resolves out of the root', async () => {
+    // realpath is followed before the check, so escape-dir → outside → null.
+    expect(await resolveCwdWithinRoots(roots, join(root, 'escape-dir'))).toBeNull()
+  })
+
+  it('rejects a relative path', async () => {
+    expect(await resolveCwdWithinRoots(roots, 'sub')).toBeNull()
+  })
+
+  it('rejects an empty request', async () => {
+    expect(await resolveCwdWithinRoots(roots, '')).toBeNull()
+  })
+
+  it('rejects a directory that does not exist', async () => {
+    expect(await resolveCwdWithinRoots(roots, join(root, 'no-such-dir'))).toBeNull()
   })
 })
 

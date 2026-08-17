@@ -28,6 +28,7 @@ import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-sandbox'
 import type {} from '@deepseek-ai/dsh-sandbox-policy'
 import { isSameOrigin } from './origin.ts'
+import { composeRoots, resolveCwdWithinRoots } from './roots.ts'
 
 /** Minimal shape this module needs from node-pty. */
 interface Pty {
@@ -76,6 +77,9 @@ export interface PtyOptions {
   loopbackOnly: boolean
   /** Shell to spawn; empty means detect from the environment. */
   shell: string
+  /** Extra absolute read roots — the same fence the file API uses, so a shell can
+   * open in the session's cwd but never outside an allowed root. */
+  readRoots: string[]
 }
 
 const LOOPBACK = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1'])
@@ -165,12 +169,13 @@ function newId(): string {
  * full access — the same rule `terminal-bash` applies to agent PTYs.
  * @param ctx - plugin context.
  * @param shell - shell executable.
- * @returns argv to spawn, confined when the mode requires it.
+ * @returns argv to spawn (confined when the mode requires it) and the policy's
+ * workspace root, which is both the fence anchor and the fallback cwd.
  */
-function confinedArgv(ctx: Context, shell: string): { argv: string[]; mode: string; cwd: string } {
+function confinedArgv(ctx: Context, shell: string): { argv: string[]; mode: string; workspaceRoot: string } {
   const policy = ctx.sandboxPolicy.resolve()
   const argv = [shell]
-  if (policy.mode === 'danger-full-access') return { argv, mode: policy.mode, cwd: policy.workspaceRoot }
+  if (policy.mode === 'danger-full-access') return { argv, mode: policy.mode, workspaceRoot: policy.workspaceRoot }
   const sandbox = ctx.get('sandbox')
   if (sandbox === undefined) {
     throw new Error(`workbench: sandbox mode "${policy.mode}" needs a ctx.sandbox provider to open a terminal`)
@@ -178,7 +183,7 @@ function confinedArgv(ctx: Context, shell: string): { argv: string[]; mode: stri
   return {
     argv: [...sandbox.confine(argv, { ...policy, mode: policy.mode }).argv],
     mode: policy.mode,
-    cwd: policy.workspaceRoot,
+    workspaceRoot: policy.workspaceRoot,
   }
 }
 
@@ -196,11 +201,30 @@ export function createPtyGateway(ctx: Context, options: PtyOptions): {
   const server = new WebSocketServer({ noServer: true })
   const connections = new Set<Connection>()
 
-  function spawnSession(): PtySession {
+  /**
+   * Where a new shell should open.
+   *
+   * The browser asks for the session's cwd; anything the client chose is as
+   * untrusted as a file path, so it is fenced exactly the same way — canonical,
+   * inside an allowed root, or rejected. A rejected or absent request falls back
+   * to the workspace root, never to whatever was asked for.
+   * @param requested - the client's desired cwd, or undefined.
+   * @param workspaceRoot - the policy workspace root, both fence anchor and fallback.
+   * @returns a directory guaranteed to be inside the fence.
+   */
+  async function resolveSpawnCwd(requested: string | undefined, workspaceRoot: string): Promise<string> {
+    if (requested === undefined || requested === '') return workspaceRoot
+    const roots = composeRoots(workspaceRoot, options.readRoots)
+    const inside = await resolveCwdWithinRoots(roots, requested)
+    return inside ?? workspaceRoot
+  }
+
+  async function spawnSession(requestedCwd?: string): Promise<PtySession> {
     const shell = detectShell(options.shell)
-    const { argv, cwd } = confinedArgv(ctx, shell)
+    const { argv, workspaceRoot } = confinedArgv(ctx, shell)
     const [file, ...args] = argv
     if (file === undefined) throw new Error('workbench: empty shell argv')
+    const cwd = await resolveSpawnCwd(requestedCwd, workspaceRoot)
     const child = pty.spawn(file, args, {
       // node-pty's `name` is what lands in TERM, overriding any env entry. It
       // has to match what xterm.js actually implements: with the older
@@ -256,14 +280,24 @@ export function createPtyGateway(ctx: Context, options: PtyOptions): {
     }
   }
 
-  server.on('connection', (socket: WebSocket) => {
+  server.on('connection', (socket: WebSocket, req: IncomingMessage) => {
     const conn: Connection = { sessions: new Map(), activeSessionId: null, buffers: new Map(), socket }
     connections.add(conn)
 
-    function create(): void {
+    // The desired cwd rides in on the handshake URL, so the first shell (and the
+    // one a reconnect brings up) already opens in the session's directory without
+    // a round trip. It is still fenced at spawn time like any other request.
+    let connectionCwd: string | undefined
+    try {
+      connectionCwd = new URL(req.url ?? '/', 'http://workbench.local').searchParams.get('cwd') ?? undefined
+    } catch {
+      connectionCwd = undefined
+    }
+
+    async function create(requestedCwd?: string): Promise<void> {
       let session: PtySession
       try {
-        session = spawnSession()
+        session = await spawnSession(requestedCwd ?? connectionCwd)
       } catch (error) {
         socket.send(JSON.stringify({ type: 'error', message: error instanceof Error ? error.message : String(error) }))
         return
@@ -274,10 +308,12 @@ export function createPtyGateway(ctx: Context, options: PtyOptions): {
       socket.send(JSON.stringify({ type: 'created', id: session.id, pid: session.pty.pid, shell: session.shell }))
     }
 
-    function control(message: { type?: string; sessionId?: string; cols?: number; rows?: number }): void {
+    function control(message: { type?: string; sessionId?: string; cols?: number; rows?: number; cwd?: string }): void {
       switch (message.type) {
         case 'create':
-          create()
+          // A tab opened later carries the currently-viewed session's cwd; with
+          // none it reuses the connection's, so + still lands where the first did.
+          void create(typeof message.cwd === 'string' ? message.cwd : undefined)
           return
         case 'switch': {
           const session = message.sessionId === undefined ? undefined : conn.sessions.get(message.sessionId)
@@ -333,7 +369,7 @@ export function createPtyGateway(ctx: Context, options: PtyOptions): {
     socket.on('close', () => { killAll(conn) })
     socket.on('error', () => { killAll(conn) })
 
-    create()
+    void create()
   })
 
   return {

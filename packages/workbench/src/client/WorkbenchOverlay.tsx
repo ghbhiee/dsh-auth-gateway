@@ -2,10 +2,15 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { PropsLocale, PropsRuntime, PropsStore } from '@deepseek-ai/dsh-client-ui-slots'
+// Brings the runtime's GlobalStandardProps (useSessions) into PropsRuntime for a
+// root-scoped slot; type-only, so it adds nothing to the bundle.
+import type {} from '@deepseek-ai/dsh-client-runtime/client'
 import type { workbenchStore } from './store.ts'
+import { clampDockWidth } from './dock-width.ts'
 import { FileBrowser } from './FileBrowser.tsx'
 import { TerminalPane } from './TerminalPane.tsx'
 import css from './WorkbenchOverlay.module.css'
+import './workbench-dock.css'
 
 /** Props the framework composes for the overlay registration. */
 export type WorkbenchOverlayProps =
@@ -15,11 +20,79 @@ export type WorkbenchOverlayProps =
 
 type Tab = 'files' | 'terminal'
 
+/**
+ * The AppFrame element, i.e. the parent of the overlay layer.
+ *
+ * The layout package gives it no id or stable class, but the overlay layer it
+ * contains carries `data-shell-overlay` — a documented, stable hook — so the
+ * frame is reachable as that layer's parent. Same anchor mobile-shell uses.
+ * @returns the frame element, or null before the shell has mounted.
+ */
+function frameElement(): HTMLElement | null {
+  const layer = document.querySelector('[data-shell-overlay]')
+  return layer?.parentElement ?? null
+}
+
+/** How much an arrow-key press resizes the dock, in px. */
+const RESIZE_STEP = 16
+
 /** Render the workbench panel while the shared store says it is open. */
-export function WorkbenchOverlay({ useStore, actions, t }: WorkbenchOverlayProps) {
+export function WorkbenchOverlay({ useStore, useSessions, actions, t }: WorkbenchOverlayProps) {
   const open = useStore(state => state.open)
+  const docked = useStore(state => state.docked)
+  const dockWidth = useStore(state => state.dockWidth)
+  // The directory of the session currently in view. It drives both the file
+  // tree's root and where new terminals open, and re-renders this surface when
+  // the user switches sessions. Transiently undefined before the host fills it.
+  const sessionCwd = useSessions(state => (state.current !== undefined ? state.byId[state.current]?.cwd : undefined))
   const [tab, setTab] = useState<Tab>('files')
   const panelRef = useRef<HTMLDivElement | null>(null)
+
+  // Dress the frame as a right-hand dock while open and docked: mark it so the
+  // stylesheet reserves the strip and reflows the conversation, and publish the
+  // width as a custom property both the reserved strip and the panel read.
+  // Everything is torn down on close, on switching to full-frame, and on unmount.
+  useEffect(() => {
+    const frame = frameElement()
+    if (frame === null) return
+    if (open && docked) {
+      frame.style.setProperty('--wb-dock-width', `${dockWidth}px`)
+      frame.setAttribute('data-workbench-docked', '')
+    } else {
+      frame.removeAttribute('data-workbench-docked')
+      frame.style.removeProperty('--wb-dock-width')
+    }
+    return () => {
+      frame.removeAttribute('data-workbench-docked')
+      frame.style.removeProperty('--wb-dock-width')
+    }
+  }, [open, docked, dockWidth])
+
+  // Drag the panel's left edge to resize. The width is written live to the frame
+  // property (so both the reserved strip and the panel follow the pointer) and
+  // committed to the store on release, where it is clamped and persists.
+  const onResizeStart = useCallback((event: React.PointerEvent) => {
+    event.preventDefault()
+    const frame = frameElement()
+    if (frame === null) return
+    const frameRight = frame.getBoundingClientRect().right
+    const onMove = (move: PointerEvent): void => {
+      frame.style.setProperty('--wb-dock-width', `${clampDockWidth(frameRight - move.clientX)}px`)
+    }
+    const onUp = (up: PointerEvent): void => {
+      document.removeEventListener('pointermove', onMove)
+      document.removeEventListener('pointerup', onUp)
+      actions.setDockWidth(frameRight - up.clientX)
+    }
+    document.addEventListener('pointermove', onMove)
+    document.addEventListener('pointerup', onUp)
+  }, [actions])
+
+  // Keyboard resize for the same handle: left widens the dock, right narrows it.
+  const onResizeKey = useCallback((event: React.KeyboardEvent) => {
+    if (event.key === 'ArrowLeft') { event.preventDefault(); actions.setDockWidth(dockWidth + RESIZE_STEP) }
+    else if (event.key === 'ArrowRight') { event.preventDefault(); actions.setDockWidth(dockWidth - RESIZE_STEP) }
+  }, [actions, dockWidth])
 
   // Escape closes the surface, except from inside the terminal: there it is a
   // keystroke the shell owns (vim, less, readline all use it).
@@ -31,11 +104,13 @@ export function WorkbenchOverlay({ useStore, actions, t }: WorkbenchOverlayProps
     actions.close()
   }, [actions])
 
-  // Move focus into the surface when it opens, so keyboard and screen-reader
-  // users are not left behind on the page underneath.
+  // Move focus into the surface when it opens full-frame, so keyboard and
+  // screen-reader users are not left behind on the page underneath. A docked
+  // panel sits beside the conversation rather than over it, so it does not grab
+  // focus away from whatever the user was doing there.
   useEffect(() => {
-    if (open) panelRef.current?.focus()
-  }, [open])
+    if (open && !docked) panelRef.current?.focus()
+  }, [open, docked])
 
   // Arrow keys move between tabs, the way a screen-reader user expects of a
   // tablist; the roving tabindex keeps the group a single Tab stop.
@@ -54,11 +129,26 @@ export function WorkbenchOverlay({ useStore, actions, t }: WorkbenchOverlayProps
     <div
       className={css.panel}
       ref={panelRef}
-      role="dialog"
+      // A full-frame panel is modal-ish and owns the frame; a docked one sits
+      // beside a still-usable conversation, which is a complementary region, not
+      // a dialog. The role follows the mode so assistive tech frames it right.
+      role={docked ? 'complementary' : 'dialog'}
       aria-label={t('title')}
+      data-workbench-panel
       tabIndex={-1}
       onKeyDown={onKeyDown}
     >
+      {docked ? (
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          aria-label={t('resize')}
+          tabIndex={0}
+          className={css.resizeHandle}
+          onPointerDown={onResizeStart}
+          onKeyDown={onResizeKey}
+        />
+      ) : null}
       <div className={css.header}>
         <span className={css.title}>{t('title')}</span>
         <div className={css.tabs} role="tablist" aria-label={t('title')} onKeyDown={onTabsKeyDown}>
@@ -87,6 +177,14 @@ export function WorkbenchOverlay({ useStore, actions, t }: WorkbenchOverlayProps
             {t('tabTerminal')}
           </button>
         </div>
+        <button
+          type="button"
+          className={css.dockToggle}
+          aria-pressed={docked}
+          onClick={() => { actions.toggleDock() }}
+        >
+          {docked ? t('fullFrame') : t('dockRight')}
+        </button>
         <button type="button" className={css.close} onClick={() => { actions.close() }}>
           {t('close')}
         </button>
@@ -105,6 +203,7 @@ export function WorkbenchOverlay({ useStore, actions, t }: WorkbenchOverlayProps
           aria-labelledby="wb-tab-files"
         >
           <FileBrowser
+            sessionCwd={sessionCwd}
             labels={{
               loading: t('loading'),
               empty: t('empty'),
@@ -137,6 +236,10 @@ export function WorkbenchOverlay({ useStore, actions, t }: WorkbenchOverlayProps
               staleVersion: t('staleVersion'),
               changedOnDisk: t('changedOnDisk'),
               reload: t('reload'),
+              htmlViewSource: t('htmlViewSource'),
+              htmlViewRendered: t('htmlViewRendered'),
+              htmlEnableScripts: t('htmlEnableScripts'),
+              htmlDisableScripts: t('htmlDisableScripts'),
               errors: {
                 destination_exists: t('err_destination_exists'),
                 protected_file: t('err_protected_file'),
@@ -172,6 +275,7 @@ export function WorkbenchOverlay({ useStore, actions, t }: WorkbenchOverlayProps
         >
           <TerminalPane
             active={tab === 'terminal'}
+            cwd={sessionCwd}
             labels={{
               connecting: t('connecting'),
               newTab: t('newTerminal'),

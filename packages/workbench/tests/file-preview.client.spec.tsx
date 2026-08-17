@@ -8,6 +8,7 @@ import { FilePreview, type FilePreviewProps } from '../src/client/FilePreview.ts
 const labels: FilePreviewProps['labels'] = {
   loading: 'Loading…', binary: 'Binary file', notUtf8: 'Not UTF-8', empty: 'Empty file',
   edit: 'Edit', save: 'Save', cancel: 'Cancel', saved: 'Saved', staleVersion: 'Save refused', changedOnDisk: 'Changed on disk', reload: 'Reload',
+  htmlViewSource: 'View source', htmlViewRendered: 'View rendered', htmlEnableScripts: 'Enable scripts', htmlDisableScripts: 'Disable scripts',
 }
 
 /** Requests the pane made, so a test can assert the write went out. */
@@ -96,6 +97,81 @@ describe('rendering by kind', () => {
     readBody = { status: 200, payload: { path: 'e.txt', size: 0, content: '' } }
     show({ path: 'e.txt', name: 'e.txt' })
     await waitFor(() => { expect(screen.getByText('Empty file')).toBeDefined() })
+  })
+})
+
+describe('html preview', () => {
+  // A workspace .html is a file nobody here wrote (a cloned repo, an agent's
+  // output). This mirrors the bytes-route "script the app origin" test on the
+  // client side: the frame is the trust boundary, so its sandbox is asserted.
+  const hostile = '<h1>hi</h1><script>parent.postMessage(document.cookie,"*")</script>'
+
+  async function showHtml() {
+    readBody = { status: 200, payload: { path: 'page.html', size: hostile.length, content: hostile, version: 'v1' } }
+    show({ path: 'page.html', name: 'page.html' })
+    return await screen.findByTitle('page.html') as HTMLIFrameElement
+  }
+
+  it('renders HTML in a sandboxed iframe, not as executable source', async () => {
+    const frame = await showHtml()
+    // The document rides in srcdoc, and the frame is present as a real iframe.
+    expect(frame.tagName).toBe('IFRAME')
+    expect(frame.getAttribute('srcdoc')).toBe(hostile)
+  })
+
+  it('defaults to inert: sandboxed with no script permission', async () => {
+    const frame = await showHtml()
+    expect(frame.hasAttribute('sandbox')).toBe(true)
+    expect(frame.getAttribute('sandbox')).toBe('')
+  })
+
+  it('never combines allow-scripts with allow-same-origin, in either mode', async () => {
+    const frame = await showHtml()
+    // Inert.
+    expect(frame.getAttribute('sandbox')).not.toContain('allow-same-origin')
+    // Opt into scripts, then re-read the attribute.
+    fireEvent.click(screen.getByText('Enable scripts'))
+    await waitFor(() => { expect(screen.getByTitle('page.html').getAttribute('sandbox')).toBe('allow-scripts') })
+    expect(screen.getByTitle('page.html').getAttribute('sandbox')).not.toContain('allow-same-origin')
+  })
+
+  it('remounts the frame when scripts are toggled, so the new sandbox loads', async () => {
+    // Mutating `sandbox` on a live srcdoc frame does not re-load it, so the
+    // opt-in would be a no-op without a remount. A fresh element proves it.
+    const before = await showHtml()
+    fireEvent.click(screen.getByText('Enable scripts'))
+    await waitFor(() => { expect(screen.getByTitle('page.html').getAttribute('sandbox')).toBe('allow-scripts') })
+    expect(screen.getByTitle('page.html')).not.toBe(before)
+  })
+
+  it('can show the source, and back to the rendered frame', async () => {
+    await showHtml()
+    fireEvent.click(screen.getByText('View source'))
+    // The read block shows the markup as text now, no iframe.
+    await waitFor(() => { expect(screen.queryByTitle('page.html')).toBeNull() })
+    fireEvent.click(screen.getByText('View rendered'))
+    await waitFor(() => { expect(screen.getByTitle('page.html')).toBeDefined() })
+  })
+
+  it('resets scripts back off when the file changes', async () => {
+    // Re-render the SAME instance with a new path, so the reset effect (keyed on
+    // root/path) actually runs — a fresh mount would start off regardless.
+    readBody = { status: 200, payload: { path: 'page.html', size: hostile.length, content: hostile, version: 'v1' } }
+    const base: FilePreviewProps = {
+      root: 'workspace', path: 'page.html', name: 'page.html',
+      writeEnabled: true, onSaved: vi.fn(), labels,
+    }
+    const { rerender } = render(<FilePreview {...base} />)
+    await screen.findByTitle('page.html')
+    fireEvent.click(screen.getByText('Enable scripts'))
+    await waitFor(() => { expect(screen.getByTitle('page.html').getAttribute('sandbox')).toBe('allow-scripts') })
+
+    // Switch to a different HTML file: the opt-in must not carry over.
+    const other = '<p>other</p>'
+    readBody = { status: 200, payload: { path: 'other.html', size: other.length, content: other, version: 'v1' } }
+    rerender(<FilePreview {...base} path="other.html" name="other.html" />)
+    const frame = await screen.findByTitle('other.html')
+    expect(frame.getAttribute('sandbox')).toBe('')
   })
 })
 

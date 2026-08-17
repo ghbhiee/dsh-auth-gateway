@@ -73,7 +73,11 @@ export function apply(ctx: Context, config: Config): void {
   if (!config.ptyEnabled) return
 
   ctx.effect(() => {
-    const gateway = createPtyGateway(ctx, { loopbackOnly: config.loopbackOnly, shell: config.shell })
+    const gateway = createPtyGateway(ctx, {
+      loopbackOnly: config.loopbackOnly,
+      shell: config.shell,
+      readRoots: config.readRoots,
+    })
     const removeRoute = ctx.webServer.registerUpgrade({
       path: '/plugins/workbench/pty',
       handler: gateway.handler,
