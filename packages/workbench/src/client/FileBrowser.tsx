@@ -68,10 +68,14 @@ export interface FileBrowserProps {
   labels: FileBrowserLabels
   /** The active session's working directory; the browser opens here and follows switches. */
   sessionCwd?: string | undefined
-  /** A file to navigate to and preview, e.g. from an artifact link in the chat. */
+  /** A file to navigate to and preview, e.g. from an intercepted link in the chat. */
   openTarget?: PreviewTarget | null | undefined
   /** Called once the browser has acted on {@link openTarget}, so it can be cleared. */
   onTargetConsumed?: (() => void) | undefined
+  /** Show only the file preview (no directory list), as a link-opened preview wants. */
+  previewOnly?: boolean | undefined
+  /** Called when the user leaves the preview-only mode (Back), to resume browsing. */
+  onExitPreviewOnly?: (() => void) | undefined
 }
 
 interface Marked {
@@ -111,7 +115,7 @@ function isNavigable(entry: ListEntry): boolean {
 }
 
 /** Two-pane file browser: listing on the left, preview on the right. */
-export function FileBrowser({ labels, sessionCwd, openTarget, onTargetConsumed }: FileBrowserProps) {
+export function FileBrowser({ labels, sessionCwd, openTarget, onTargetConsumed, previewOnly, onExitPreviewOnly }: FileBrowserProps) {
   const [roots, setRoots] = useState<Root[]>([])
   const [rootId, setRootId] = useState('')
   const [path, setPath] = useState('')
@@ -365,14 +369,17 @@ export function FileBrowser({ labels, sessionCwd, openTarget, onTargetConsumed }
   }, [writeEnabled])
 
   const crumbs = path.split('/').filter(Boolean)
+  // A link-opened preview shows only the file regardless of width; otherwise
+  // the pane's own measurement decides.
+  const drillIn = narrow || previewOnly === true
 
   return (
     <div
       className={css.browser}
       ref={browserRef}
-      // When narrow, the stylesheet stacks the panes and `data-view` picks which
-      // one shows; wide, both show side by side and these are inert.
-      data-narrow={narrow ? 'true' : undefined}
+      // When drilled in, the stylesheet stacks the panes and `data-view` picks
+      // which one shows; wide, both show side by side and these are inert.
+      data-narrow={drillIn ? 'true' : undefined}
       data-view={preview !== null ? 'preview' : 'list'}
     >
       <aside
@@ -492,9 +499,13 @@ export function FileBrowser({ labels, sessionCwd, openTarget, onTargetConsumed }
       </aside>
 
       <section className={css.preview}>
-        {narrow && preview !== null ? (
+        {drillIn && preview !== null ? (
           <div className={css.backBar}>
-            <button type="button" className={css.back} onClick={() => { setPreview(null); setMarked(null) }}>
+            <button
+              type="button"
+              className={css.back}
+              onClick={() => { setPreview(null); setMarked(null); onExitPreviewOnly?.() }}
+            >
               <span aria-hidden="true">←</span> {labels.back}
             </button>
             <span className={css.backName}>{preview.name}</span>

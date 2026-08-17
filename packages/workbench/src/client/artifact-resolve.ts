@@ -1,7 +1,7 @@
 /**
- * Turn raw path tokens (produced-file locations and prose mentions) into files
- * the workbench can actually preview: resolved to a read root, and confirmed to
- * exist on disk.
+ * Turn a raw path token (from an intercepted conversation file link) into a
+ * file the workbench can actually preview: resolved to a read root, and
+ * confirmed to exist on disk.
  *
  * @module dsh-plugin-workbench/client/artifact-resolve
  */
@@ -15,9 +15,9 @@ export interface ResolvedArtifact {
   root: string
   /** Path relative to that root. */
   path: string
-  /** Basename, for the chip label. */
+  /** Basename, for the preview label. */
   name: string
-  /** The absolute path, used to dedupe across tokens that name the same file. */
+  /** The absolute path, the identity a repeat click toggles on. */
   absolute: string
 }
 
@@ -28,7 +28,7 @@ async function loadRoots(): Promise<Root[]> {
   return rootsCache
 }
 
-/** Per-session-lifetime existence memo, so repeated mentions cost one stat. */
+/** Existence memo, so repeated clicks on the same link cost one stat. */
 const existsCache = new Map<string, boolean>()
 
 /** Clear the module caches — for tests, which stub different roots per case. */
@@ -74,27 +74,20 @@ async function isFile(artifact: ResolvedArtifact): Promise<boolean> {
 }
 
 /**
- * Resolve a batch of path tokens to previewable files.
+ * Resolve a clicked path token to a previewable file.
  *
- * A token maps to a file only if it lands inside a read root and names a real
- * file — a mention of something that was deleted, or a directory, or a path
- * outside the fence, is dropped rather than shown as a dead chip. First-seen
- * order is kept and duplicates (same absolute path) collapse.
- * @param tokens - produced-file paths and prose mentions, already unioned.
+ * The token opens only if it lands inside a read root and names a real file —
+ * a link to something deleted, a directory, or a path outside the fence
+ * resolves to null and the click does nothing, rather than opening a dead
+ * preview (or, worse, falling back to the host opener).
+ * @param token - the path from the clicked link.
  * @param cwd - the session working directory.
- * @returns the files, in first-seen order.
+ * @returns the file, or null when it cannot be previewed.
  */
-export async function resolveArtifacts(tokens: readonly string[], cwd: string | undefined): Promise<ResolvedArtifact[]> {
+export async function resolvePreviewable(token: string, cwd: string | undefined): Promise<ResolvedArtifact | null> {
   const roots = await loadRoots().catch(() => [] as Root[])
-  if (roots.length === 0) return []
-  const candidates: ResolvedArtifact[] = []
-  const seen = new Set<string>()
-  for (const token of tokens) {
-    const resolved = resolveOne(roots, token, cwd)
-    if (resolved === null || seen.has(resolved.absolute)) continue
-    seen.add(resolved.absolute)
-    candidates.push(resolved)
-  }
-  const checked = await Promise.all(candidates.map(async artifact => ({ artifact, ok: await isFile(artifact) })))
-  return checked.filter(entry => entry.ok).map(entry => entry.artifact)
+  if (roots.length === 0) return null
+  const resolved = resolveOne(roots, token, cwd)
+  if (resolved === null) return null
+  return (await isFile(resolved)) ? resolved : null
 }

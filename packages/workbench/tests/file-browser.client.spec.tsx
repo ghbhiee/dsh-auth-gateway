@@ -162,6 +162,26 @@ describe('session directory', () => {
     expect(consumed).toHaveBeenCalled()
   })
 
+  it('preview-only mode shows just the file, and Back reports the exit', async () => {
+    // A link-opened preview hides the directory list regardless of pane width;
+    // Back hands control back so normal browsing resumes.
+    const exit = vi.fn()
+    render(
+      <FileBrowser
+        labels={labels}
+        openTarget={{ root: 'workspace', path: 'top.txt', name: 'top.txt' }}
+        onTargetConsumed={vi.fn()}
+        previewOnly
+        onExitPreviewOnly={exit}
+      />,
+    )
+    await waitFor(() => { expect(screen.getByText('Back')).toBeDefined() })
+    const browser = document.querySelector('[data-narrow="true"]')
+    expect(browser?.getAttribute('data-view')).toBe('preview')
+    fireEvent.click(screen.getByText('Back'))
+    expect(exit).toHaveBeenCalledTimes(1)
+  })
+
   it('ignores an open target in a root it does not have, but still reports it', async () => {
     const consumed = vi.fn()
     render(

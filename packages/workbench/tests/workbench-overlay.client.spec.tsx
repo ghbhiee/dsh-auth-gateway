@@ -8,22 +8,30 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { WorkbenchOverlay } from '../src/client/WorkbenchOverlay.tsx'
 import { requestOpenFile, requestToggle } from '../src/client/workbench-events.ts'
+import { resetArtifactCaches } from '../src/client/artifact-resolve.ts'
 
 /** The overlay reads several framework props. */
 type SessionsState = { current: string | undefined; byId: Record<string, { cwd?: string }> }
-type StoreState = { open: boolean; docked: boolean; dockWidth: number; pendingTarget: unknown }
+type StoreState = { open: boolean; docked: boolean; dockWidth: number; pendingTarget: unknown; linkPreviewPath: string | null; openBeforeLink: boolean }
 const Overlay = WorkbenchOverlay as unknown as (props: {
   useStore: <S>(selector: (state: StoreState) => S) => S
   useSessions: <S>(selector: (state: SessionsState) => S) => S
-  actions: { close: () => void; toggle: () => void; toggleDock: () => void; setDockWidth: (w: number) => void; openFile: (t: unknown) => void; consumeTarget: () => void }
+  actions: {
+    close: () => void; toggle: () => void; toggleDock: () => void; setDockWidth: (w: number) => void
+    openFile: (t: unknown) => void; consumeTarget: () => void
+    openLinkPreview: (t: unknown) => void; exitLinkPreview: () => void
+  }
   t: (key: string) => string
 }) => React.ReactElement | null
 
 function show(open: boolean, docked = false, sessions: SessionsState = { current: undefined, byId: {} }) {
-  const actions = { close: vi.fn(), toggle: vi.fn(), toggleDock: vi.fn(), setDockWidth: vi.fn(), openFile: vi.fn(), consumeTarget: vi.fn() }
+  const actions = {
+    close: vi.fn(), toggle: vi.fn(), toggleDock: vi.fn(), setDockWidth: vi.fn(),
+    openFile: vi.fn(), consumeTarget: vi.fn(), openLinkPreview: vi.fn(), exitLinkPreview: vi.fn(),
+  }
   const result = render(
     <Overlay
-      useStore={selector => selector({ open, docked, dockWidth: 460, pendingTarget: null })}
+      useStore={selector => selector({ open, docked, dockWidth: 460, pendingTarget: null, linkPreviewPath: null, openBeforeLink: false })}
       useSessions={selector => selector(sessions)}
       actions={actions}
       t={key => key}
@@ -187,6 +195,117 @@ describe('docked versus full-frame', () => {
     expect(actions.setDockWidth).toHaveBeenLastCalledWith(460 + 16) // left widens
     fireEvent.keyDown(handle, { key: 'ArrowRight' })
     expect(actions.setDockWidth).toHaveBeenLastCalledWith(460 - 16) // right narrows
+  })
+})
+
+describe('intercepting conversation file links', () => {
+  // The links being intercepted open through the HOST opener — the file opens
+  // on the machine dsh runs on, useless from a remote browser. These tests pin
+  // the interception: a path-shaped button in the conversation column opens the
+  // panel preview instead, and everything else is left alone.
+  let frame: HTMLDivElement
+  let center: HTMLDivElement
+
+  /** Files the fake host says exist. */
+  let existing: Set<string>
+
+  beforeEach(() => {
+    resetArtifactCaches()
+    existing = new Set(['report.html'])
+    // The overlay finds the frame as the parent of [data-shell-overlay]; build
+    // that scaffolding: [sidebar, conversation, details, overlay-layer].
+    frame = document.createElement('div')
+    frame.append(document.createElement('div'))
+    center = document.createElement('div')
+    frame.append(center)
+    frame.append(document.createElement('div'))
+    const layer = document.createElement('div')
+    layer.setAttribute('data-shell-overlay', 'true')
+    frame.append(layer)
+    document.body.append(frame)
+
+    vi.stubGlobal('fetch', vi.fn((input: string) => {
+      const url = new URL(input, 'http://host')
+      const json = (body: unknown, ok = true, status = 200): Response =>
+        ({ ok, status, json: () => Promise.resolve(body), text: () => Promise.resolve(JSON.stringify(body)) }) as Response
+      if (url.pathname.endsWith('/roots')) return Promise.resolve(json({ roots: [{ id: 'workspace', path: '/ws', label: 'ws' }] }))
+      if (url.pathname.endsWith('/stat')) {
+        const path = url.searchParams.get('path') ?? ''
+        return existing.has(path)
+          ? Promise.resolve(json({ type: 'file', size: 9, version: 'v1' }))
+          : Promise.resolve(json({ code: 'not_found', error: 'no' }, false, 404))
+      }
+      return Promise.resolve(json({ ok: true, roots: [], entries: [], writeEnabled: false, ptyEnabled: true }))
+    }))
+  })
+
+  afterEach(() => { frame.remove() })
+
+  function chatButton(text: string, title?: string): HTMLButtonElement {
+    const button = document.createElement('button')
+    button.textContent = text
+    if (title !== undefined) button.title = title
+    center.append(button)
+    return button
+  }
+
+  it('opens the panel preview for a full-path mention', async () => {
+    const { actions } = show(false)
+    fireEvent.click(chatButton('/ws/report.html'))
+    await waitFor(() => {
+      expect(actions.openLinkPreview).toHaveBeenCalledWith(
+        { root: 'workspace', path: 'report.html', name: 'report.html', absolute: '/ws/report.html' },
+      )
+    })
+  })
+
+  it('resolves a basename chip through its full-path title', async () => {
+    const { actions } = show(false)
+    fireEvent.click(chatButton('report.html', '/ws/report.html'))
+    await waitFor(() => { expect(actions.openLinkPreview).toHaveBeenCalled() })
+  })
+
+  it('swallows the click so the host opener never fires', () => {
+    show(false)
+    const button = chatButton('/ws/report.html')
+    const reactHandler = vi.fn()
+    // Stands in for React's delegated handler: a bubble listener on the frame.
+    frame.addEventListener('click', reactHandler)
+    fireEvent.click(button)
+    expect(reactHandler).not.toHaveBeenCalled()
+    frame.removeEventListener('click', reactHandler)
+  })
+
+  it('leaves ordinary buttons alone', async () => {
+    const { actions } = show(false)
+    const button = chatButton('Copy')
+    const reactHandler = vi.fn()
+    frame.addEventListener('click', reactHandler)
+    fireEvent.click(button)
+    expect(reactHandler).toHaveBeenCalled() // not swallowed
+    await new Promise(resolve => setTimeout(resolve, 10))
+    expect(actions.openLinkPreview).not.toHaveBeenCalled()
+    frame.removeEventListener('click', reactHandler)
+  })
+
+  it('does not open anything for a path that is not a real file', async () => {
+    const { actions } = show(false)
+    fireEvent.click(chatButton('/ws/deleted.html'))
+    await new Promise(resolve => setTimeout(resolve, 20))
+    expect(actions.openLinkPreview).not.toHaveBeenCalled()
+  })
+
+  it('ignores clicks inside the workbench panel itself', async () => {
+    const { actions } = show(false)
+    const holder = document.createElement('div')
+    holder.setAttribute('data-workbench-panel', '')
+    const button = document.createElement('button')
+    button.textContent = '/ws/report.html'
+    holder.append(button)
+    center.append(holder)
+    fireEvent.click(button)
+    await new Promise(resolve => setTimeout(resolve, 10))
+    expect(actions.openLinkPreview).not.toHaveBeenCalled()
   })
 })
 

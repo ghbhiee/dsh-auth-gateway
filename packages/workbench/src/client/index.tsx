@@ -15,7 +15,6 @@ import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
 import { WorkbenchLauncher } from './WorkbenchLauncher.tsx'
 import { WorkbenchHeaderLauncher } from './WorkbenchHeaderLauncher.tsx'
 import { WorkbenchOverlay } from './WorkbenchOverlay.tsx'
-import { TurnArtifacts } from './TurnArtifacts.tsx'
 import { workbenchStore } from './store.ts'
 import { en, zh, type WorkbenchLocaleKey } from './locales.ts'
 
@@ -24,31 +23,6 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
     /** Workbench surface copy. */
     workbench: WorkbenchLocaleKey
   }
-}
-
-// The deliverables turn data is published by a package not in this plugin's
-// dependency set, so its map entry is re-declared here to read it type-safely.
-declare module '@deepseek-ai/dsh-client-runtime/client' {
-  interface ConversationTurnDataMap {
-    /** Files a turn produced through the file-edit tools, in write order. */
-    deliverables: { readonly produced: readonly { readonly seq: number; readonly path: string }[] }
-  }
-}
-
-/** Produced paths at or before the closing seq, deduped in first-seen order. */
-function producedForClosing(
-  data: { readonly produced: readonly { readonly seq: number; readonly path: string }[] } | undefined,
-  seq: number,
-): string[] {
-  if (data === undefined) return []
-  const paths: string[] = []
-  const seen = new Set<string>()
-  for (const entry of data.produced) {
-    if (entry.seq > seq || seen.has(entry.path)) continue
-    seen.add(entry.path)
-    paths.push(entry.path)
-  }
-  return paths
 }
 
 /** Dictionary namespace owned by this plugin. */
@@ -87,15 +61,4 @@ export function apply(ctx: ClientContext): void {
     order: 10,
     locale: NS,
   }, WorkbenchHeaderLauncher))
-
-  // Take over the turn footer's single-winner chain (dsh's ProducedFiles seat):
-  // `select` always elects — a lower priority than the built-in — and hands the
-  // produced paths as `matched`; the component adds prose-named files and shows
-  // each as an inline preview rather than opening it through the host.
-  ctx.slots.inject('conversation.chat.turnTail', () => ctx.slots.register({
-    name: 'conversation.chat.turnTail',
-    priority: -1,
-    select: (owner): readonly string[] | null => producedForClosing(owner.turn.data.get('deliverables'), owner.seq),
-    locale: NS,
-  }, TurnArtifacts))
 }

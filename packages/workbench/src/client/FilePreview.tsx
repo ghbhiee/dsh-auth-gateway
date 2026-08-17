@@ -1,7 +1,6 @@
 /** Read-only preview pane — images, markdown, source — with an edit mode. */
 
 import { useEffect, useState } from 'react'
-import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import { MarkdownText, ReadBlock } from '@deepseek-ai/dsh-client-ui-primitives'
 import { bytesUrl, fetchStat, fetchText, writeText, WorkbenchApiError } from './api.ts'
 import { htmlSandbox, languageOf, previewKind } from './preview-kind.ts'
@@ -28,8 +27,6 @@ export interface FilePreviewProps {
   name: string
   /** Whether the host accepts writes. */
   writeEnabled: boolean
-  /** Poll the file for outside changes while open. Off for one-shot inline previews. */
-  poll?: boolean
   /** Called after a successful save, so the listing can refresh sizes. */
   onSaved: () => void
   /** Localized copy. */
@@ -52,21 +49,6 @@ export interface FilePreviewProps {
   }
 }
 
-/**
- * Build the preview pane's localized copy from a translate function.
- * @param t - locale lookup for the workbench namespace.
- * @returns the label bag {@link FilePreview} expects.
- */
-export function filePreviewLabels(t: PropsLocale<'workbench'>['t']): FilePreviewProps['labels'] {
-  return {
-    loading: t('loading'), binary: t('binary'), notUtf8: t('notUtf8'), empty: t('emptyFile'),
-    edit: t('edit'), save: t('save'), cancel: t('cancel'), saved: t('saved'),
-    staleVersion: t('staleVersion'), changedOnDisk: t('changedOnDisk'), reload: t('reload'),
-    htmlViewSource: t('htmlViewSource'), htmlViewRendered: t('htmlViewRendered'),
-    htmlEnableScripts: t('htmlEnableScripts'), htmlDisableScripts: t('htmlDisableScripts'),
-  }
-}
-
 interface TextState {
   status: 'loading' | 'ready' | 'error'
   content: string
@@ -76,7 +58,7 @@ interface TextState {
 }
 
 /** Render one file, choosing the renderer from its extension. */
-export function FilePreview({ root, path, name, writeEnabled, poll = true, onSaved, labels }: FilePreviewProps) {
+export function FilePreview({ root, path, name, writeEnabled, onSaved, labels }: FilePreviewProps) {
   const kind = previewKind(name)
   const isHtml = kind === 'html'
   const [state, setState] = useState<TextState>({ status: 'loading', content: '', message: '', version: null })
@@ -119,7 +101,7 @@ export function FilePreview({ root, path, name, writeEnabled, poll = true, onSav
   // While the user is editing, the draft is never touched — the pane says the
   // file changed and the conditional save refuses to clobber it anyway.
   useEffect(() => {
-    if (!poll || kind === 'image' || state.status !== 'ready') return
+    if (kind === 'image' || state.status !== 'ready') return
     let cancelled = false
     const check = (): void => {
       if (document.visibilityState !== 'visible') return
@@ -141,7 +123,7 @@ export function FilePreview({ root, path, name, writeEnabled, poll = true, onSav
       document.removeEventListener('visibilitychange', onVisible)
       window.removeEventListener('focus', check)
     }
-  }, [poll, root, path, kind, state.status, state.version, draft])
+  }, [root, path, kind, state.status, state.version, draft])
 
   if (kind === 'image') {
     return (

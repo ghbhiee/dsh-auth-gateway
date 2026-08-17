@@ -11,19 +11,19 @@ window.__ModuleLoader__.load({
 		let react = require("react");
 		let _deepseek_ai_dsh_client_ui_primitives = require("@deepseek-ai/dsh-client-ui-primitives");
 		let _deepseek_ai_dsh_client_runtime_client = require("@deepseek-ai/dsh-client-runtime/client");
-		//#region \0dsh-css:/Users/hongbo/dsh/plugins/packages/workbench/src/client/WorkbenchLauncher.module.css.mjs
-		const css$9 = ".NJnSFG_launcher{width:100%;color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;background:0 0;border:none;border-radius:8px;align-items:center;gap:8px;padding:6px 8px;display:flex}.NJnSFG_launcher:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}.NJnSFG_label{white-space:nowrap;text-overflow:ellipsis;overflow:hidden}";
-		const tagId$9 = "dsh-plugin-workbench/WorkbenchLauncher.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$9) + "]") === null) {
+		//#region \0dsh-css:/Users/hongbo/dsh/plugins/.claude/worktrees/objective-noyce-c2f097/packages/workbench/src/client/WorkbenchLauncher.module.css.mjs
+		const css$8 = ".GtVWiG_launcher{width:100%;color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;background:0 0;border:none;border-radius:8px;align-items:center;gap:8px;padding:6px 8px;display:flex}.GtVWiG_launcher:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}.GtVWiG_label{white-space:nowrap;text-overflow:ellipsis;overflow:hidden}";
+		const tagId$8 = "dsh-plugin-workbench/WorkbenchLauncher.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$8) + "]") === null) {
 			const tag = document.createElement("style");
 			tag.dataset.plugin = "dsh-plugin-workbench";
-			tag.dataset.pluginCss = tagId$9;
-			tag.textContent = css$9;
+			tag.dataset.pluginCss = tagId$8;
+			tag.textContent = css$8;
 			document.head.appendChild(tag);
 		}
 		var WorkbenchLauncher_module_css_default = {
-			"label": "NJnSFG_label",
-			"launcher": "NJnSFG_launcher"
+			"launcher": "GtVWiG_launcher",
+			"label": "GtVWiG_label"
 		};
 		//#endregion
 		//#region src/client/WorkbenchLauncher.tsx
@@ -106,17 +106,17 @@ window.__ModuleLoader__.load({
 			};
 		}
 		//#endregion
-		//#region \0dsh-css:/Users/hongbo/dsh/plugins/packages/workbench/src/client/WorkbenchHeaderLauncher.module.css.mjs
-		const css$8 = ".ykRHMW_button{width:30px;height:30px;color:var(--dsw-alias-label-secondary);cursor:pointer;background:0 0;border:none;border-radius:8px;justify-content:center;align-items:center;padding:0;display:inline-flex}.ykRHMW_button:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}.ykRHMW_button[aria-pressed=true]{color:var(--dsw-alias-label-primary);background:var(--dsw-alias-bg-layer-1)}";
-		const tagId$8 = "dsh-plugin-workbench/WorkbenchHeaderLauncher.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$8) + "]") === null) {
+		//#region \0dsh-css:/Users/hongbo/dsh/plugins/.claude/worktrees/objective-noyce-c2f097/packages/workbench/src/client/WorkbenchHeaderLauncher.module.css.mjs
+		const css$7 = ".ojI4dq_button{width:30px;height:30px;color:var(--dsw-alias-label-secondary);cursor:pointer;background:0 0;border:none;border-radius:8px;justify-content:center;align-items:center;padding:0;display:inline-flex}.ojI4dq_button:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}.ojI4dq_button[aria-pressed=true]{color:var(--dsw-alias-label-primary);background:var(--dsw-alias-bg-layer-1)}";
+		const tagId$7 = "dsh-plugin-workbench/WorkbenchHeaderLauncher.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$7) + "]") === null) {
 			const tag = document.createElement("style");
 			tag.dataset.plugin = "dsh-plugin-workbench";
-			tag.dataset.pluginCss = tagId$8;
-			tag.textContent = css$8;
+			tag.dataset.pluginCss = tagId$7;
+			tag.textContent = css$7;
 			document.head.appendChild(tag);
 		}
-		var WorkbenchHeaderLauncher_module_css_default = { "button": "ykRHMW_button" };
+		var WorkbenchHeaderLauncher_module_css_default = { "button": "ojI4dq_button" };
 		//#endregion
 		//#region src/client/WorkbenchHeaderLauncher.tsx
 		/** Render the header launcher: an icon button that toggles the surface. */
@@ -158,6 +158,85 @@ window.__ModuleLoader__.load({
 		*/
 		function clampDockWidth(width) {
 			return Math.max(320, Math.min(900, Math.round(width)));
+		}
+		//#endregion
+		//#region src/client/link-preview.ts
+		/**
+		* Recognizing the conversation's file-link buttons, and the open/close rules of
+		* the link-driven preview.
+		*
+		* dsh renders several kinds of clickable file references — inline-code mentions
+		* in a message, the produced-file chips under a turn, the path links on tool
+		* cards — and all of them open through the *host* opener: the file opens on the
+		* machine dsh runs on. Fine at a desk, useless from a phone or another machine,
+		* and this is a web app. The workbench intercepts those clicks and previews the
+		* file in its own docked panel instead, which works wherever the browser is.
+		*
+		* There is no supported way to re-point the links themselves: the providing
+		* service refuses a second registration (verified — it fails plugin load), and
+		* the buttons carry no stable data attribute, only compiled hash classes this
+		* plugin will not key on. So recognition is by *content*: a button whose title
+		* or entire text is shaped like a file path. The pieces here are pure so the
+		* heuristic and the toggle rules can be pinned by tests.
+		*
+		* @module dsh-plugin-workbench/client/link-preview
+		*/
+		/**
+		* Whether a token is shaped like a single file path.
+		*
+		* Conservative: one token (no whitespace), bounded length, not a URL, and a
+		* last segment shaped like `name.ext`. Existence on disk is verified by the
+		* caller before anything opens, so this only has to be a cheap first gate.
+		* @param token - the candidate, already trimmed.
+		* @returns true when it is worth resolving.
+		*/
+		function isPathLike(token) {
+			if (token === "" || token.length > 512 || /\s/.test(token)) return false;
+			if (token.includes("://")) return false;
+			const last = token.slice(token.lastIndexOf("/") + 1);
+			return /^[^/]+\.[A-Za-z0-9]{1,8}$/.test(last);
+		}
+		/**
+		* The path a clicked button refers to, if it is a file link at all.
+		*
+		* Two shapes cover every dsh file link: the full path as the button's text
+		* (inline mentions), or a basename label with the full path in `title` (the
+		* produced-file chips, and this plugin's own preview labels the same way). The
+		* title wins when both are path-shaped — it carries the full path.
+		* @param title - the button's `title` attribute, or ''.
+		* @param text - the button's entire text content.
+		* @returns the path token to resolve, or null when this is not a file link.
+		*/
+		function candidatePath(title, text) {
+			const fromTitle = title.trim();
+			const fromText = text.trim();
+			if (isPathLike(fromTitle)) {
+				if (fromText === "" || fromText === fromTitle || fromTitle.endsWith(`/${fromText}`)) return fromTitle;
+				return null;
+			}
+			if (isPathLike(fromText)) return fromText;
+			return null;
+		}
+		/**
+		* What one link click does to the state: open the preview, switch it to another
+		* file, or — same link again — close it and restore what was there before.
+		* @param slice - current state slice.
+		* @param absolute - the clicked file's absolute path.
+		* @returns the next slice, plus whether the click opens (true) or closes.
+		*/
+		function linkClick(slice, absolute) {
+			if (slice.open && slice.linkPreviewPath === absolute) return {
+				open: slice.openBeforeLink,
+				linkPreviewPath: null,
+				openBeforeLink: false,
+				opens: false
+			};
+			return {
+				open: true,
+				linkPreviewPath: absolute,
+				openBeforeLink: slice.linkPreviewPath === null ? slice.open : slice.openBeforeLink,
+				opens: true
+			};
 		}
 		//#endregion
 		//#region src/client/api.ts
@@ -292,6 +371,106 @@ window.__ModuleLoader__.load({
 			}, { method: "DELETE" });
 		}
 		//#endregion
+		//#region src/client/session-root.ts
+		/**
+		* Find the most specific root that contains `cwd`.
+		* @param roots - the roots the host offered.
+		* @param cwd - the active session's absolute working directory, if known.
+		* @returns the root + relative path to open, or null when no root contains it.
+		*/
+		function rootForCwd(roots, cwd) {
+			if (cwd === void 0 || cwd === "") return null;
+			let best = null;
+			for (const root of roots) {
+				let rel = null;
+				if (cwd === root.path) rel = "";
+				else if (cwd.startsWith(`${root.path}/`)) rel = cwd.slice(root.path.length + 1);
+				if (rel === null) continue;
+				if (best === null || root.path.length > best.length) best = {
+					rootId: root.id,
+					path: rel,
+					length: root.path.length
+				};
+			}
+			return best === null ? null : {
+				rootId: best.rootId,
+				path: best.path
+			};
+		}
+		//#endregion
+		//#region src/client/artifact-resolve.ts
+		/**
+		* Turn a raw path token (from an intercepted conversation file link) into a
+		* file the workbench can actually preview: resolved to a read root, and
+		* confirmed to exist on disk.
+		*
+		* @module dsh-plugin-workbench/client/artifact-resolve
+		*/
+		let rootsCache = null;
+		async function loadRoots() {
+			if (rootsCache !== null) return rootsCache;
+			rootsCache = await fetchRoots();
+			return rootsCache;
+		}
+		/** Existence memo, so repeated clicks on the same link cost one stat. */
+		const existsCache = /* @__PURE__ */ new Map();
+		function toAbsolute(token, cwd) {
+			if (token.startsWith("/")) return token;
+			if (cwd === void 0 || cwd === "") return null;
+			return `${cwd.replace(/\/+$/, "")}/${token}`;
+		}
+		/**
+		* Resolve one token against the roots. Pure given the roots.
+		* @param roots - the readable roots.
+		* @param token - a path token (absolute, or relative to the cwd).
+		* @param cwd - the session working directory, for relative tokens.
+		* @returns the resolved file, or null when it maps outside every root.
+		*/
+		function resolveOne(roots, token, cwd) {
+			const absolute = toAbsolute(token, cwd);
+			if (absolute === null) return null;
+			const target = rootForCwd(roots, absolute);
+			if (target === null) return null;
+			const name = target.path.slice(target.path.lastIndexOf("/") + 1) || target.path;
+			return {
+				root: target.rootId,
+				path: target.path,
+				name,
+				absolute
+			};
+		}
+		async function isFile(artifact) {
+			const key = `${artifact.root}:${artifact.path}`;
+			const cached = existsCache.get(key);
+			if (cached !== void 0) return cached;
+			let ok = false;
+			try {
+				ok = (await fetchStat(artifact.root, artifact.path)).type === "file";
+			} catch {
+				ok = false;
+			}
+			existsCache.set(key, ok);
+			return ok;
+		}
+		/**
+		* Resolve a clicked path token to a previewable file.
+		*
+		* The token opens only if it lands inside a read root and names a real file —
+		* a link to something deleted, a directory, or a path outside the fence
+		* resolves to null and the click does nothing, rather than opening a dead
+		* preview (or, worse, falling back to the host opener).
+		* @param token - the path from the clicked link.
+		* @param cwd - the session working directory.
+		* @returns the file, or null when it cannot be previewed.
+		*/
+		async function resolvePreviewable(token, cwd) {
+			const roots = await loadRoots().catch(() => []);
+			if (roots.length === 0) return null;
+			const resolved = resolveOne(roots, token, cwd);
+			if (resolved === null) return null;
+			return await isFile(resolved) ? resolved : null;
+		}
+		//#endregion
 		//#region src/client/preview-kind.ts
 		/** Extension-driven preview routing and grammar hints. */
 		const IMAGE_EXTENSIONS = /* @__PURE__ */ new Set([
@@ -409,50 +588,23 @@ window.__ModuleLoader__.load({
 			return `${(bytes / 1048576).toFixed(1)} MB`;
 		}
 		//#endregion
-		//#region src/client/session-root.ts
-		/**
-		* Find the most specific root that contains `cwd`.
-		* @param roots - the roots the host offered.
-		* @param cwd - the active session's absolute working directory, if known.
-		* @returns the root + relative path to open, or null when no root contains it.
-		*/
-		function rootForCwd(roots, cwd) {
-			if (cwd === void 0 || cwd === "") return null;
-			let best = null;
-			for (const root of roots) {
-				let rel = null;
-				if (cwd === root.path) rel = "";
-				else if (cwd.startsWith(`${root.path}/`)) rel = cwd.slice(root.path.length + 1);
-				if (rel === null) continue;
-				if (best === null || root.path.length > best.length) best = {
-					rootId: root.id,
-					path: rel,
-					length: root.path.length
-				};
-			}
-			return best === null ? null : {
-				rootId: best.rootId,
-				path: best.path
-			};
-		}
-		//#endregion
-		//#region \0dsh-css:/Users/hongbo/dsh/plugins/packages/workbench/src/client/FileActions.module.css.mjs
-		const css$7 = ".nAghBG_actions{border-bottom:1px solid var(--dsw-alias-border-l2);flex-direction:column;gap:4px;padding:6px 8px;display:flex}.nAghBG_row{gap:4px;display:flex}.nAghBG_button{border:1px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;white-space:nowrap;background:0 0;border-radius:6px;padding:3px 8px;font-size:12px}.nAghBG_button:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}.nAghBG_danger{border-color:var(--dsw-alias-state-error-primary,#c33);color:var(--dsw-alias-state-error-primary,#c33)}.nAghBG_input{border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);min-width:0;color:var(--dsw-alias-label-primary);font:inherit;border-radius:6px;flex:1;padding:3px 6px;font-size:12px}.nAghBG_hidden{display:none}";
-		const tagId$7 = "dsh-plugin-workbench/FileActions.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$7) + "]") === null) {
+		//#region \0dsh-css:/Users/hongbo/dsh/plugins/.claude/worktrees/objective-noyce-c2f097/packages/workbench/src/client/FileActions.module.css.mjs
+		const css$6 = "._8DG8tq_actions{border-bottom:1px solid var(--dsw-alias-border-l2);flex-direction:column;gap:4px;padding:6px 8px;display:flex}._8DG8tq_row{gap:4px;display:flex}._8DG8tq_button{border:1px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;white-space:nowrap;background:0 0;border-radius:6px;padding:3px 8px;font-size:12px}._8DG8tq_button:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}._8DG8tq_danger{border-color:var(--dsw-alias-state-error-primary,#c33);color:var(--dsw-alias-state-error-primary,#c33)}._8DG8tq_input{border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);min-width:0;color:var(--dsw-alias-label-primary);font:inherit;border-radius:6px;flex:1;padding:3px 6px;font-size:12px}._8DG8tq_hidden{display:none}";
+		const tagId$6 = "dsh-plugin-workbench/FileActions.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$6) + "]") === null) {
 			const tag = document.createElement("style");
 			tag.dataset.plugin = "dsh-plugin-workbench";
-			tag.dataset.pluginCss = tagId$7;
-			tag.textContent = css$7;
+			tag.dataset.pluginCss = tagId$6;
+			tag.textContent = css$6;
 			document.head.appendChild(tag);
 		}
 		var FileActions_module_css_default = {
-			"actions": "nAghBG_actions",
-			"button": "nAghBG_button",
-			"hidden": "nAghBG_hidden",
-			"row": "nAghBG_row",
-			"danger": "nAghBG_danger",
-			"input": "nAghBG_input"
+			"hidden": "_8DG8tq_hidden",
+			"danger": "_8DG8tq_danger",
+			"input": "_8DG8tq_input",
+			"row": "_8DG8tq_row",
+			"actions": "_8DG8tq_actions",
+			"button": "_8DG8tq_button"
 		};
 		//#endregion
 		//#region src/client/FileActions.tsx
@@ -632,30 +784,30 @@ window.__ModuleLoader__.load({
 			return error instanceof Error ? error.message : String(error);
 		}
 		//#endregion
-		//#region \0dsh-css:/Users/hongbo/dsh/plugins/packages/workbench/src/client/FilePreview.module.css.mjs
-		const css$6 = ".__ybxq_notice{color:var(--dsw-alias-label-tertiary);padding:16px}.__ybxq_imageWrap{justify-content:center;align-items:center;height:100%;padding:16px;display:flex}.__ybxq_image{object-fit:contain;max-width:100%;max-height:100%}.__ybxq_markdown{max-width:820px;padding:16px 20px}.__ybxq_read{margin:12px}.__ybxq_editor{flex-direction:column;height:100%;min-height:0;display:flex}.__ybxq_toolbar{border-bottom:1px solid var(--dsw-alias-border-l2);align-items:center;gap:8px;padding:6px 10px;display:flex}.__ybxq_path{color:var(--dsw-alias-label-tertiary);text-overflow:ellipsis;white-space:nowrap;flex:1;font-size:12px;overflow:hidden}.__ybxq_error{color:var(--dsw-alias-state-error-primary,#c33);font-size:12px}.__ybxq_saved{color:var(--dsw-alias-label-tertiary);font-size:12px}.__ybxq_button{border:1px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;background:0 0;border-radius:6px;padding:3px 8px;font-size:12px}.__ybxq_button:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}.__ybxq_textarea{background:var(--dsw-alias-bg-base);min-height:0;color:var(--dsw-alias-label-primary);resize:none;border:none;flex:1;padding:10px 12px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.55}.__ybxq_textarea:focus{outline:none}.__ybxq_htmlFrame{background:var(--dsw-alias-bg-base);border:none;flex:1;width:100%;min-height:0}";
-		const tagId$6 = "dsh-plugin-workbench/FilePreview.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$6) + "]") === null) {
+		//#region \0dsh-css:/Users/hongbo/dsh/plugins/.claude/worktrees/objective-noyce-c2f097/packages/workbench/src/client/FilePreview.module.css.mjs
+		const css$5 = ".d0tlPa_notice{color:var(--dsw-alias-label-tertiary);padding:16px}.d0tlPa_imageWrap{justify-content:center;align-items:center;height:100%;padding:16px;display:flex}.d0tlPa_image{object-fit:contain;max-width:100%;max-height:100%}.d0tlPa_markdown{max-width:820px;padding:16px 20px}.d0tlPa_read{margin:12px}.d0tlPa_editor{flex-direction:column;height:100%;min-height:0;display:flex}.d0tlPa_toolbar{border-bottom:1px solid var(--dsw-alias-border-l2);align-items:center;gap:8px;padding:6px 10px;display:flex}.d0tlPa_path{color:var(--dsw-alias-label-tertiary);text-overflow:ellipsis;white-space:nowrap;flex:1;font-size:12px;overflow:hidden}.d0tlPa_error{color:var(--dsw-alias-state-error-primary,#c33);font-size:12px}.d0tlPa_saved{color:var(--dsw-alias-label-tertiary);font-size:12px}.d0tlPa_button{border:1px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;background:0 0;border-radius:6px;padding:3px 8px;font-size:12px}.d0tlPa_button:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}.d0tlPa_textarea{background:var(--dsw-alias-bg-base);min-height:0;color:var(--dsw-alias-label-primary);resize:none;border:none;flex:1;padding:10px 12px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.55}.d0tlPa_textarea:focus{outline:none}.d0tlPa_htmlFrame{background:var(--dsw-alias-bg-base);border:none;flex:1;width:100%;min-height:0}";
+		const tagId$5 = "dsh-plugin-workbench/FilePreview.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$5) + "]") === null) {
 			const tag = document.createElement("style");
 			tag.dataset.plugin = "dsh-plugin-workbench";
-			tag.dataset.pluginCss = tagId$6;
-			tag.textContent = css$6;
+			tag.dataset.pluginCss = tagId$5;
+			tag.textContent = css$5;
 			document.head.appendChild(tag);
 		}
 		var FilePreview_module_css_default = {
-			"error": "__ybxq_error",
-			"saved": "__ybxq_saved",
-			"imageWrap": "__ybxq_imageWrap",
-			"toolbar": "__ybxq_toolbar",
-			"read": "__ybxq_read",
-			"button": "__ybxq_button",
-			"htmlFrame": "__ybxq_htmlFrame",
-			"textarea": "__ybxq_textarea",
-			"editor": "__ybxq_editor",
-			"image": "__ybxq_image",
-			"markdown": "__ybxq_markdown",
-			"path": "__ybxq_path",
-			"notice": "__ybxq_notice"
+			"image": "d0tlPa_image",
+			"imageWrap": "d0tlPa_imageWrap",
+			"markdown": "d0tlPa_markdown",
+			"read": "d0tlPa_read",
+			"error": "d0tlPa_error",
+			"saved": "d0tlPa_saved",
+			"button": "d0tlPa_button",
+			"notice": "d0tlPa_notice",
+			"textarea": "d0tlPa_textarea",
+			"htmlFrame": "d0tlPa_htmlFrame",
+			"editor": "d0tlPa_editor",
+			"toolbar": "d0tlPa_toolbar",
+			"path": "d0tlPa_path"
 		};
 		//#endregion
 		//#region src/client/FilePreview.tsx
@@ -670,32 +822,8 @@ window.__ModuleLoader__.load({
 		* Anyone who needs the whole thing has a terminal in the same panel.
 		*/
 		const MAX_PREVIEW_LINES = 2e3;
-		/**
-		* Build the preview pane's localized copy from a translate function.
-		* @param t - locale lookup for the workbench namespace.
-		* @returns the label bag {@link FilePreview} expects.
-		*/
-		function filePreviewLabels(t) {
-			return {
-				loading: t("loading"),
-				binary: t("binary"),
-				notUtf8: t("notUtf8"),
-				empty: t("emptyFile"),
-				edit: t("edit"),
-				save: t("save"),
-				cancel: t("cancel"),
-				saved: t("saved"),
-				staleVersion: t("staleVersion"),
-				changedOnDisk: t("changedOnDisk"),
-				reload: t("reload"),
-				htmlViewSource: t("htmlViewSource"),
-				htmlViewRendered: t("htmlViewRendered"),
-				htmlEnableScripts: t("htmlEnableScripts"),
-				htmlDisableScripts: t("htmlDisableScripts")
-			};
-		}
 		/** Render one file, choosing the renderer from its extension. */
-		function FilePreview({ root, path, name, writeEnabled, poll = true, onSaved, labels }) {
+		function FilePreview({ root, path, name, writeEnabled, onSaved, labels }) {
 			const kind = previewKind(name);
 			const isHtml = kind === "html";
 			const [state, setState] = (0, react.useState)({
@@ -754,7 +882,7 @@ window.__ModuleLoader__.load({
 				labels.notUtf8
 			]);
 			(0, react.useEffect)(() => {
-				if (!poll || kind === "image" || state.status !== "ready") return;
+				if (kind === "image" || state.status !== "ready") return;
 				let cancelled = false;
 				const check = () => {
 					if (document.visibilityState !== "visible") return;
@@ -787,7 +915,6 @@ window.__ModuleLoader__.load({
 					window.removeEventListener("focus", check);
 				};
 			}, [
-				poll,
 				root,
 				path,
 				kind,
@@ -981,39 +1108,39 @@ window.__ModuleLoader__.load({
 			});
 		}
 		//#endregion
-		//#region \0dsh-css:/Users/hongbo/dsh/plugins/packages/workbench/src/client/FileBrowser.module.css.mjs
-		const css$5 = "._2eUkga_browser{height:100%;min-height:0;display:flex}._2eUkga_list{border-right:1px solid var(--dsw-alias-border-l2);flex-direction:column;width:300px;min-width:220px;display:flex;overflow:hidden}._2eUkga_toolbar{border-bottom:1px solid var(--dsw-alias-border-l2);padding:8px}._2eUkga_rootPicker{border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);width:100%;color:var(--dsw-alias-label-primary);font:inherit;border-radius:6px;padding:4px 6px}._2eUkga_crumbs{border-bottom:1px solid var(--dsw-alias-border-l2);flex-wrap:wrap;gap:2px;padding:6px 8px;display:flex}._2eUkga_crumb{color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;background:0 0;border:none;border-radius:6px;padding:2px 6px;font-size:12px}._2eUkga_crumb:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}._2eUkga_rows{flex:1;min-height:0;margin:0;padding:4px;list-style:none;overflow-y:auto}._2eUkga_row{width:100%;color:var(--dsw-alias-label-primary);cursor:pointer;font:inherit;text-align:left;background:0 0;border:none;border-radius:6px;align-items:center;gap:6px;padding:4px 8px;font-size:13px;display:flex}._2eUkga_row:hover{background:var(--dsw-alias-interactive-bg-hover)}._2eUkga_rowActive{background:var(--dsw-alias-interactive-bg-active)}._2eUkga_icon{width:12px;color:var(--dsw-alias-label-tertiary)}._2eUkga_name{white-space:nowrap;text-overflow:ellipsis;flex:1;overflow:hidden}._2eUkga_size{color:var(--dsw-alias-label-tertiary);font-size:11px}._2eUkga_preview{flex:1;min-width:0;overflow:auto}._2eUkga_browser[data-narrow=true]{position:relative}._2eUkga_browser[data-narrow=true] ._2eUkga_list{border-right:none;width:100%;min-width:0}._2eUkga_browser[data-narrow=true] ._2eUkga_preview{z-index:3;background:var(--dsw-alias-bg-base);position:absolute;inset:0}._2eUkga_browser[data-narrow=true][data-view=list] ._2eUkga_preview,._2eUkga_browser[data-narrow=true][data-view=preview] ._2eUkga_list{display:none}._2eUkga_backBar{border-bottom:1px solid var(--dsw-alias-border-l2);align-items:center;gap:8px;padding:6px 10px;display:flex}._2eUkga_back{border:1px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;background:0 0;border-radius:6px;padding:3px 8px;font-size:12px}._2eUkga_back:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}._2eUkga_backName{color:var(--dsw-alias-label-tertiary);text-overflow:ellipsis;white-space:nowrap;font-size:12px;overflow:hidden}._2eUkga_notice{color:var(--dsw-alias-label-tertiary);padding:12px;font-size:13px}._2eUkga_entry{border-radius:6px;align-items:center;display:flex}._2eUkga_entryActive{background:var(--dsw-alias-interactive-bg-active,var(--dsw-alias-interactive-bg-hover))}._2eUkga_icon{width:18px;color:var(--dsw-alias-label-tertiary);cursor:pointer;font:inherit;background:0 0;border:none;padding:2px 0;font-size:12px}._2eUkga_icon:hover{color:var(--dsw-alias-label-primary)}._2eUkga_listDropping{outline:2px dashed var(--dsw-alias-border-l3);outline-offset:-6px;position:relative}._2eUkga_dropHint{z-index:2;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);text-align:center;border-radius:8px;padding:8px;font-size:12px;position:absolute;top:50%;left:8px;right:8px;transform:translateY(-50%)}._2eUkga_search{border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);width:100%;color:var(--dsw-alias-label-primary);font:inherit;border-radius:6px;margin-top:6px;padding:4px 6px;font-size:12px}";
-		const tagId$5 = "dsh-plugin-workbench/FileBrowser.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$5) + "]") === null) {
+		//#region \0dsh-css:/Users/hongbo/dsh/plugins/.claude/worktrees/objective-noyce-c2f097/packages/workbench/src/client/FileBrowser.module.css.mjs
+		const css$4 = ".KKn2Eq_browser{height:100%;min-height:0;display:flex}.KKn2Eq_list{border-right:1px solid var(--dsw-alias-border-l2);flex-direction:column;width:300px;min-width:220px;display:flex;overflow:hidden}.KKn2Eq_toolbar{border-bottom:1px solid var(--dsw-alias-border-l2);padding:8px}.KKn2Eq_rootPicker{border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);width:100%;color:var(--dsw-alias-label-primary);font:inherit;border-radius:6px;padding:4px 6px}.KKn2Eq_crumbs{border-bottom:1px solid var(--dsw-alias-border-l2);flex-wrap:wrap;gap:2px;padding:6px 8px;display:flex}.KKn2Eq_crumb{color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;background:0 0;border:none;border-radius:6px;padding:2px 6px;font-size:12px}.KKn2Eq_crumb:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}.KKn2Eq_rows{flex:1;min-height:0;margin:0;padding:4px;list-style:none;overflow-y:auto}.KKn2Eq_row{width:100%;color:var(--dsw-alias-label-primary);cursor:pointer;font:inherit;text-align:left;background:0 0;border:none;border-radius:6px;align-items:center;gap:6px;padding:4px 8px;font-size:13px;display:flex}.KKn2Eq_row:hover{background:var(--dsw-alias-interactive-bg-hover)}.KKn2Eq_rowActive{background:var(--dsw-alias-interactive-bg-active)}.KKn2Eq_icon{width:12px;color:var(--dsw-alias-label-tertiary)}.KKn2Eq_name{white-space:nowrap;text-overflow:ellipsis;flex:1;overflow:hidden}.KKn2Eq_size{color:var(--dsw-alias-label-tertiary);font-size:11px}.KKn2Eq_preview{flex:1;min-width:0;overflow:auto}.KKn2Eq_browser[data-narrow=true]{position:relative}.KKn2Eq_browser[data-narrow=true] .KKn2Eq_list{border-right:none;width:100%;min-width:0}.KKn2Eq_browser[data-narrow=true] .KKn2Eq_preview{z-index:3;background:var(--dsw-alias-bg-base);position:absolute;inset:0}.KKn2Eq_browser[data-narrow=true][data-view=list] .KKn2Eq_preview,.KKn2Eq_browser[data-narrow=true][data-view=preview] .KKn2Eq_list{display:none}.KKn2Eq_backBar{border-bottom:1px solid var(--dsw-alias-border-l2);align-items:center;gap:8px;padding:6px 10px;display:flex}.KKn2Eq_back{border:1px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;background:0 0;border-radius:6px;padding:3px 8px;font-size:12px}.KKn2Eq_back:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}.KKn2Eq_backName{color:var(--dsw-alias-label-tertiary);text-overflow:ellipsis;white-space:nowrap;font-size:12px;overflow:hidden}.KKn2Eq_notice{color:var(--dsw-alias-label-tertiary);padding:12px;font-size:13px}.KKn2Eq_entry{border-radius:6px;align-items:center;display:flex}.KKn2Eq_entryActive{background:var(--dsw-alias-interactive-bg-active,var(--dsw-alias-interactive-bg-hover))}.KKn2Eq_icon{width:18px;color:var(--dsw-alias-label-tertiary);cursor:pointer;font:inherit;background:0 0;border:none;padding:2px 0;font-size:12px}.KKn2Eq_icon:hover{color:var(--dsw-alias-label-primary)}.KKn2Eq_listDropping{outline:2px dashed var(--dsw-alias-border-l3);outline-offset:-6px;position:relative}.KKn2Eq_dropHint{z-index:2;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);text-align:center;border-radius:8px;padding:8px;font-size:12px;position:absolute;top:50%;left:8px;right:8px;transform:translateY(-50%)}.KKn2Eq_search{border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);width:100%;color:var(--dsw-alias-label-primary);font:inherit;border-radius:6px;margin-top:6px;padding:4px 6px;font-size:12px}";
+		const tagId$4 = "dsh-plugin-workbench/FileBrowser.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$4) + "]") === null) {
 			const tag = document.createElement("style");
 			tag.dataset.plugin = "dsh-plugin-workbench";
-			tag.dataset.pluginCss = tagId$5;
-			tag.textContent = css$5;
+			tag.dataset.pluginCss = tagId$4;
+			tag.textContent = css$4;
 			document.head.appendChild(tag);
 		}
 		var FileBrowser_module_css_default = {
-			"backName": "_2eUkga_backName",
-			"rowActive": "_2eUkga_rowActive",
-			"size": "_2eUkga_size",
-			"crumb": "_2eUkga_crumb",
-			"entryActive": "_2eUkga_entryActive",
-			"list": "_2eUkga_list",
-			"notice": "_2eUkga_notice",
-			"preview": "_2eUkga_preview",
-			"backBar": "_2eUkga_backBar",
-			"rows": "_2eUkga_rows",
-			"back": "_2eUkga_back",
-			"crumbs": "_2eUkga_crumbs",
-			"dropHint": "_2eUkga_dropHint",
-			"listDropping": "_2eUkga_listDropping",
-			"entry": "_2eUkga_entry",
-			"search": "_2eUkga_search",
-			"browser": "_2eUkga_browser",
-			"icon": "_2eUkga_icon",
-			"toolbar": "_2eUkga_toolbar",
-			"rootPicker": "_2eUkga_rootPicker",
-			"row": "_2eUkga_row",
-			"name": "_2eUkga_name"
+			"listDropping": "KKn2Eq_listDropping",
+			"rootPicker": "KKn2Eq_rootPicker",
+			"entryActive": "KKn2Eq_entryActive",
+			"entry": "KKn2Eq_entry",
+			"name": "KKn2Eq_name",
+			"crumbs": "KKn2Eq_crumbs",
+			"backBar": "KKn2Eq_backBar",
+			"size": "KKn2Eq_size",
+			"notice": "KKn2Eq_notice",
+			"backName": "KKn2Eq_backName",
+			"crumb": "KKn2Eq_crumb",
+			"toolbar": "KKn2Eq_toolbar",
+			"rows": "KKn2Eq_rows",
+			"row": "KKn2Eq_row",
+			"rowActive": "KKn2Eq_rowActive",
+			"preview": "KKn2Eq_preview",
+			"browser": "KKn2Eq_browser",
+			"back": "KKn2Eq_back",
+			"icon": "KKn2Eq_icon",
+			"dropHint": "KKn2Eq_dropHint",
+			"list": "KKn2Eq_list",
+			"search": "KKn2Eq_search"
 		};
 		//#endregion
 		//#region src/client/FileBrowser.tsx
@@ -1043,7 +1170,7 @@ window.__ModuleLoader__.load({
 			return entry.type === "directory" || entry.type === "symlink" && entry.linkTarget === "directory";
 		}
 		/** Two-pane file browser: listing on the left, preview on the right. */
-		function FileBrowser({ labels, sessionCwd, openTarget, onTargetConsumed }) {
+		function FileBrowser({ labels, sessionCwd, openTarget, onTargetConsumed, previewOnly, onExitPreviewOnly }) {
 			const [roots, setRoots] = (0, react.useState)([]);
 			const [rootId, setRootId] = (0, react.useState)("");
 			const [path, setPath] = (0, react.useState)("");
@@ -1329,10 +1456,11 @@ window.__ModuleLoader__.load({
 				setDropActive(true);
 			}, [writeEnabled]);
 			const crumbs = path.split("/").filter(Boolean);
+			const drillIn = narrow || previewOnly === true;
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 				className: FileBrowser_module_css_default.browser,
 				ref: browserRef,
-				"data-narrow": narrow ? "true" : void 0,
+				"data-narrow": drillIn ? "true" : void 0,
 				"data-view": preview !== null ? "preview" : "list",
 				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("aside", {
 					className: dropActive ? `${FileBrowser_module_css_default.list} ${FileBrowser_module_css_default.listDropping}` : FileBrowser_module_css_default.list,
@@ -1538,7 +1666,7 @@ window.__ModuleLoader__.load({
 					]
 				}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
 					className: FileBrowser_module_css_default.preview,
-					children: [narrow && preview !== null ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					children: [drillIn && preview !== null ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: FileBrowser_module_css_default.backBar,
 						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
 							type: "button",
@@ -1546,6 +1674,7 @@ window.__ModuleLoader__.load({
 							onClick: () => {
 								setPreview(null);
 								setMarked(null);
+								onExitPreviewOnly?.();
 							},
 							children: [
 								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
@@ -8966,17 +9095,17 @@ window.__ModuleLoader__.load({
 			})()));
 		}));
 		//#endregion
-		//#region \0dsh-css:/Users/hongbo/dsh/plugins/node_modules/.pnpm/@xterm+xterm@5.5.0/node_modules/@xterm/xterm/css/xterm.css.mjs
+		//#region \0dsh-css:/Users/hongbo/dsh/plugins/.claude/worktrees/objective-noyce-c2f097/node_modules/.pnpm/@xterm+xterm@5.5.0/node_modules/@xterm/xterm/css/xterm.css.mjs
 		var import_addon_fit = require_addon_fit();
 		var import_addon_web_links = require_addon_web_links();
 		var import_xterm = require_xterm();
-		const css$4 = ".xterm{cursor:text;-webkit-user-select:none;user-select:none;position:relative}.xterm.focus,.xterm:focus{outline:none}.xterm .xterm-helpers{z-index:5;position:absolute;top:0}.xterm .xterm-helper-textarea{opacity:0;z-index:-5;white-space:nowrap;resize:none;border:0;width:0;height:0;margin:0;padding:0;position:absolute;top:0;left:-9999em;overflow:hidden}.xterm .composition-view{color:#fff;white-space:nowrap;z-index:1;background:#000;display:none;position:absolute}.xterm .composition-view.active{display:block}.xterm .xterm-viewport{cursor:default;background-color:#000;position:absolute;inset:0;overflow-y:scroll}.xterm .xterm-screen{position:relative}.xterm .xterm-screen canvas{position:absolute;top:0;left:0}.xterm .xterm-scroll-area{visibility:hidden}.xterm-char-measure-element{visibility:hidden;line-height:normal;display:inline-block;position:absolute;top:0;left:-9999em}.xterm.enable-mouse-events{cursor:default}.xterm.xterm-cursor-pointer,.xterm .xterm-cursor-pointer{cursor:pointer}.xterm.column-select.focus{cursor:crosshair}.xterm .xterm-accessibility:not(.debug),.xterm .xterm-message{z-index:10;color:#0000;pointer-events:none;position:absolute;inset:0}.xterm .xterm-accessibility-tree:not(.debug) ::selection{color:#0000}.xterm .xterm-accessibility-tree{-webkit-user-select:text;user-select:text;white-space:pre}.xterm .live-region{width:1px;height:1px;position:absolute;left:-9999px;overflow:hidden}.xterm-dim{opacity:1!important}.xterm-underline-1{text-decoration:underline}.xterm-underline-2{-webkit-text-decoration:underline double;text-decoration:underline double}.xterm-underline-3{-webkit-text-decoration:underline wavy;text-decoration:underline wavy}.xterm-underline-4{-webkit-text-decoration:underline dotted;text-decoration:underline dotted}.xterm-underline-5{-webkit-text-decoration:underline dashed;text-decoration:underline dashed}.xterm-overline{text-decoration:overline}.xterm-overline.xterm-underline-1{text-decoration:underline overline}.xterm-overline.xterm-underline-2{-webkit-text-decoration:overline double underline;text-decoration:overline double underline}.xterm-overline.xterm-underline-3{-webkit-text-decoration:overline wavy underline;text-decoration:overline wavy underline}.xterm-overline.xterm-underline-4{-webkit-text-decoration:overline dotted underline;text-decoration:overline dotted underline}.xterm-overline.xterm-underline-5{-webkit-text-decoration:overline dashed underline;text-decoration:overline dashed underline}.xterm-strikethrough{text-decoration:line-through}.xterm-screen .xterm-decoration-container .xterm-decoration{z-index:6;position:absolute}.xterm-screen .xterm-decoration-container .xterm-decoration.xterm-decoration-top-layer{z-index:7}.xterm-decoration-overview-ruler{z-index:8;pointer-events:none;position:absolute;top:0;right:0}.xterm-decoration-top{z-index:2;position:relative}";
-		const tagId$4 = "dsh-plugin-workbench/xterm.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$4) + "]") === null) {
+		const css$3 = ".xterm{cursor:text;-webkit-user-select:none;user-select:none;position:relative}.xterm.focus,.xterm:focus{outline:none}.xterm .xterm-helpers{z-index:5;position:absolute;top:0}.xterm .xterm-helper-textarea{opacity:0;z-index:-5;white-space:nowrap;resize:none;border:0;width:0;height:0;margin:0;padding:0;position:absolute;top:0;left:-9999em;overflow:hidden}.xterm .composition-view{color:#fff;white-space:nowrap;z-index:1;background:#000;display:none;position:absolute}.xterm .composition-view.active{display:block}.xterm .xterm-viewport{cursor:default;background-color:#000;position:absolute;inset:0;overflow-y:scroll}.xterm .xterm-screen{position:relative}.xterm .xterm-screen canvas{position:absolute;top:0;left:0}.xterm .xterm-scroll-area{visibility:hidden}.xterm-char-measure-element{visibility:hidden;line-height:normal;display:inline-block;position:absolute;top:0;left:-9999em}.xterm.enable-mouse-events{cursor:default}.xterm.xterm-cursor-pointer,.xterm .xterm-cursor-pointer{cursor:pointer}.xterm.column-select.focus{cursor:crosshair}.xterm .xterm-accessibility:not(.debug),.xterm .xterm-message{z-index:10;color:#0000;pointer-events:none;position:absolute;inset:0}.xterm .xterm-accessibility-tree:not(.debug) ::selection{color:#0000}.xterm .xterm-accessibility-tree{-webkit-user-select:text;user-select:text;white-space:pre}.xterm .live-region{width:1px;height:1px;position:absolute;left:-9999px;overflow:hidden}.xterm-dim{opacity:1!important}.xterm-underline-1{text-decoration:underline}.xterm-underline-2{-webkit-text-decoration:underline double;text-decoration:underline double}.xterm-underline-3{-webkit-text-decoration:underline wavy;text-decoration:underline wavy}.xterm-underline-4{-webkit-text-decoration:underline dotted;text-decoration:underline dotted}.xterm-underline-5{-webkit-text-decoration:underline dashed;text-decoration:underline dashed}.xterm-overline{text-decoration:overline}.xterm-overline.xterm-underline-1{text-decoration:underline overline}.xterm-overline.xterm-underline-2{-webkit-text-decoration:overline double underline;text-decoration:overline double underline}.xterm-overline.xterm-underline-3{-webkit-text-decoration:overline wavy underline;text-decoration:overline wavy underline}.xterm-overline.xterm-underline-4{-webkit-text-decoration:overline dotted underline;text-decoration:overline dotted underline}.xterm-overline.xterm-underline-5{-webkit-text-decoration:overline dashed underline;text-decoration:overline dashed underline}.xterm-strikethrough{text-decoration:line-through}.xterm-screen .xterm-decoration-container .xterm-decoration{z-index:6;position:absolute}.xterm-screen .xterm-decoration-container .xterm-decoration.xterm-decoration-top-layer{z-index:7}.xterm-decoration-overview-ruler{z-index:8;pointer-events:none;position:absolute;top:0;right:0}.xterm-decoration-top{z-index:2;position:relative}";
+		const tagId$3 = "dsh-plugin-workbench/xterm.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$3) + "]") === null) {
 			const tag = document.createElement("style");
 			tag.dataset.plugin = "dsh-plugin-workbench";
-			tag.dataset.pluginCss = tagId$4;
-			tag.textContent = css$4;
+			tag.dataset.pluginCss = tagId$3;
+			tag.textContent = css$3;
 			document.head.appendChild(tag);
 		}
 		//#endregion
@@ -9091,27 +9220,27 @@ window.__ModuleLoader__.load({
 			};
 		}
 		//#endregion
-		//#region \0dsh-css:/Users/hongbo/dsh/plugins/packages/workbench/src/client/TerminalPane.module.css.mjs
-		const css$3 = ".OXPjra_pane{background:var(--dsw-alias-bg-layer-1);flex-direction:column;height:100%;min-height:0;display:flex}.OXPjra_tabs{border-bottom:1px solid var(--dsw-alias-border-l2);align-items:center;gap:4px;padding:4px 6px;display:flex}.OXPjra_tab{border:1px solid #0000;border-radius:6px;align-items:center;display:flex}.OXPjra_tabActive{border-color:var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-base)}.OXPjra_tabLabel{color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;background:0 0;border:none;padding:3px 6px;font-size:12px}.OXPjra_tabActive .OXPjra_tabLabel{color:var(--dsw-alias-label-primary)}.OXPjra_tabClose,.OXPjra_newTab{color:var(--dsw-alias-label-tertiary);cursor:pointer;font:inherit;background:0 0;border:none;border-radius:6px;padding:2px 6px;line-height:1}.OXPjra_tabClose:hover,.OXPjra_newTab:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}.OXPjra_surface{flex:1;min-height:0;padding:6px 8px}.OXPjra_status{border-top:1px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-tertiary);align-items:center;gap:8px;padding:6px 10px;font-size:12px;display:flex}.OXPjra_retry{border:1px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;background:0 0;border-radius:6px;padding:2px 8px;font-size:12px}.OXPjra_retry:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}";
-		const tagId$3 = "dsh-plugin-workbench/TerminalPane.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$3) + "]") === null) {
+		//#region \0dsh-css:/Users/hongbo/dsh/plugins/.claude/worktrees/objective-noyce-c2f097/packages/workbench/src/client/TerminalPane.module.css.mjs
+		const css$2 = ".OXgMra_pane{background:var(--dsw-alias-bg-layer-1);flex-direction:column;height:100%;min-height:0;display:flex}.OXgMra_tabs{border-bottom:1px solid var(--dsw-alias-border-l2);align-items:center;gap:4px;padding:4px 6px;display:flex}.OXgMra_tab{border:1px solid #0000;border-radius:6px;align-items:center;display:flex}.OXgMra_tabActive{border-color:var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-base)}.OXgMra_tabLabel{color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;background:0 0;border:none;padding:3px 6px;font-size:12px}.OXgMra_tabActive .OXgMra_tabLabel{color:var(--dsw-alias-label-primary)}.OXgMra_tabClose,.OXgMra_newTab{color:var(--dsw-alias-label-tertiary);cursor:pointer;font:inherit;background:0 0;border:none;border-radius:6px;padding:2px 6px;line-height:1}.OXgMra_tabClose:hover,.OXgMra_newTab:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}.OXgMra_surface{flex:1;min-height:0;padding:6px 8px}.OXgMra_status{border-top:1px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-tertiary);align-items:center;gap:8px;padding:6px 10px;font-size:12px;display:flex}.OXgMra_retry{border:1px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;background:0 0;border-radius:6px;padding:2px 8px;font-size:12px}.OXgMra_retry:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}";
+		const tagId$2 = "dsh-plugin-workbench/TerminalPane.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$2) + "]") === null) {
 			const tag = document.createElement("style");
 			tag.dataset.plugin = "dsh-plugin-workbench";
-			tag.dataset.pluginCss = tagId$3;
-			tag.textContent = css$3;
+			tag.dataset.pluginCss = tagId$2;
+			tag.textContent = css$2;
 			document.head.appendChild(tag);
 		}
 		var TerminalPane_module_css_default = {
-			"tabLabel": "OXPjra_tabLabel",
-			"tab": "OXPjra_tab",
-			"pane": "OXPjra_pane",
-			"tabClose": "OXPjra_tabClose",
-			"tabActive": "OXPjra_tabActive",
-			"tabs": "OXPjra_tabs",
-			"surface": "OXPjra_surface",
-			"newTab": "OXPjra_newTab",
-			"retry": "OXPjra_retry",
-			"status": "OXPjra_status"
+			"tabActive": "OXgMra_tabActive",
+			"newTab": "OXgMra_newTab",
+			"tabClose": "OXgMra_tabClose",
+			"tabLabel": "OXgMra_tabLabel",
+			"pane": "OXgMra_pane",
+			"retry": "OXgMra_retry",
+			"tab": "OXgMra_tab",
+			"status": "OXgMra_status",
+			"tabs": "OXgMra_tabs",
+			"surface": "OXgMra_surface"
 		};
 		//#endregion
 		//#region src/client/TerminalPane.tsx
@@ -9430,39 +9559,39 @@ window.__ModuleLoader__.load({
 			});
 		}
 		//#endregion
-		//#region \0dsh-css:/Users/hongbo/dsh/plugins/packages/workbench/src/client/WorkbenchOverlay.module.css.mjs
-		const css$2 = ".GNmo4W_panel{pointer-events:auto;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);flex-direction:column;display:flex;position:absolute;inset:0}.GNmo4W_header{border-bottom:1px solid var(--dsw-alias-border-l2);justify-content:space-between;align-items:center;gap:8px;padding:8px 12px;display:flex}.GNmo4W_title{font-weight:600}.GNmo4W_close{border:1px solid var(--dsw-alias-border-l2);color:inherit;cursor:pointer;background:0 0;border-radius:8px;padding:4px 10px}.GNmo4W_close:hover{background:var(--dsw-alias-interactive-bg-hover)}.GNmo4W_tabs{flex:1;gap:4px;display:flex}.GNmo4W_tab{color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;background:0 0;border:1px solid #0000;border-radius:8px;padding:4px 10px;font-size:13px}.GNmo4W_tab:hover{background:var(--dsw-alias-interactive-bg-hover)}.GNmo4W_tabActive{border-color:var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary)}.GNmo4W_body{flex:1;min-height:0;position:relative;overflow:hidden}.GNmo4W_pane{position:absolute;inset:0;overflow:hidden}.GNmo4W_paneHidden{visibility:hidden;pointer-events:none;position:absolute;inset:0;overflow:hidden}.GNmo4W_resizeHandle{z-index:1;cursor:col-resize;background:0 0;border:none;width:7px;height:100%;padding:0;position:absolute;top:0;left:-3px}:is(.GNmo4W_resizeHandle:hover,.GNmo4W_resizeHandle:focus-visible){background:var(--dsw-alias-interactive-bg-hover);outline:none}.GNmo4W_dockToggle{border:1px solid var(--dsw-alias-border-l2);color:inherit;cursor:pointer;font:inherit;background:0 0;border-radius:8px;padding:4px 10px;font-size:13px}.GNmo4W_dockToggle:hover{background:var(--dsw-alias-interactive-bg-hover)}";
-		const tagId$2 = "dsh-plugin-workbench/WorkbenchOverlay.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$2) + "]") === null) {
-			const tag = document.createElement("style");
-			tag.dataset.plugin = "dsh-plugin-workbench";
-			tag.dataset.pluginCss = tagId$2;
-			tag.textContent = css$2;
-			document.head.appendChild(tag);
-		}
-		var WorkbenchOverlay_module_css_default = {
-			"panel": "GNmo4W_panel",
-			"header": "GNmo4W_header",
-			"close": "GNmo4W_close",
-			"tabs": "GNmo4W_tabs",
-			"tabActive": "GNmo4W_tabActive",
-			"pane": "GNmo4W_pane",
-			"tab": "GNmo4W_tab",
-			"body": "GNmo4W_body",
-			"title": "GNmo4W_title",
-			"resizeHandle": "GNmo4W_resizeHandle",
-			"dockToggle": "GNmo4W_dockToggle",
-			"paneHidden": "GNmo4W_paneHidden"
-		};
-		//#endregion
-		//#region \0dsh-css:/Users/hongbo/dsh/plugins/packages/workbench/src/client/workbench-dock.css.mjs
-		const css$1 = "[data-workbench-docked]>:nth-child(2){margin-inline-end:var(--wb-dock-width,460px)}[data-workbench-docked] [data-workbench-panel]{width:var(--wb-dock-width,460px);border-left:1px solid var(--dsw-alias-border-l2);left:auto;right:0}";
-		const tagId$1 = "dsh-plugin-workbench/workbench-dock.css";
+		//#region \0dsh-css:/Users/hongbo/dsh/plugins/.claude/worktrees/objective-noyce-c2f097/packages/workbench/src/client/WorkbenchOverlay.module.css.mjs
+		const css$1 = ".P2qc0W_panel{pointer-events:auto;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);flex-direction:column;display:flex;position:absolute;inset:0}.P2qc0W_header{border-bottom:1px solid var(--dsw-alias-border-l2);justify-content:space-between;align-items:center;gap:8px;padding:8px 12px;display:flex}.P2qc0W_title{font-weight:600}.P2qc0W_close{border:1px solid var(--dsw-alias-border-l2);color:inherit;cursor:pointer;background:0 0;border-radius:8px;padding:4px 10px}.P2qc0W_close:hover{background:var(--dsw-alias-interactive-bg-hover)}.P2qc0W_tabs{flex:1;gap:4px;display:flex}.P2qc0W_tab{color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;background:0 0;border:1px solid #0000;border-radius:8px;padding:4px 10px;font-size:13px}.P2qc0W_tab:hover{background:var(--dsw-alias-interactive-bg-hover)}.P2qc0W_tabActive{border-color:var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary)}.P2qc0W_body{flex:1;min-height:0;position:relative;overflow:hidden}.P2qc0W_pane{position:absolute;inset:0;overflow:hidden}.P2qc0W_paneHidden{visibility:hidden;pointer-events:none;position:absolute;inset:0;overflow:hidden}.P2qc0W_resizeHandle{z-index:1;cursor:col-resize;background:0 0;border:none;width:7px;height:100%;padding:0;position:absolute;top:0;left:-3px}:is(.P2qc0W_resizeHandle:hover,.P2qc0W_resizeHandle:focus-visible){background:var(--dsw-alias-interactive-bg-hover);outline:none}.P2qc0W_dockToggle{border:1px solid var(--dsw-alias-border-l2);color:inherit;cursor:pointer;font:inherit;background:0 0;border-radius:8px;padding:4px 10px;font-size:13px}.P2qc0W_dockToggle:hover{background:var(--dsw-alias-interactive-bg-hover)}";
+		const tagId$1 = "dsh-plugin-workbench/WorkbenchOverlay.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$1) + "]") === null) {
 			const tag = document.createElement("style");
 			tag.dataset.plugin = "dsh-plugin-workbench";
 			tag.dataset.pluginCss = tagId$1;
 			tag.textContent = css$1;
+			document.head.appendChild(tag);
+		}
+		var WorkbenchOverlay_module_css_default = {
+			"title": "P2qc0W_title",
+			"resizeHandle": "P2qc0W_resizeHandle",
+			"dockToggle": "P2qc0W_dockToggle",
+			"tabActive": "P2qc0W_tabActive",
+			"panel": "P2qc0W_panel",
+			"header": "P2qc0W_header",
+			"body": "P2qc0W_body",
+			"pane": "P2qc0W_pane",
+			"paneHidden": "P2qc0W_paneHidden",
+			"close": "P2qc0W_close",
+			"tabs": "P2qc0W_tabs",
+			"tab": "P2qc0W_tab"
+		};
+		//#endregion
+		//#region \0dsh-css:/Users/hongbo/dsh/plugins/.claude/worktrees/objective-noyce-c2f097/packages/workbench/src/client/workbench-dock.css.mjs
+		const css = "[data-workbench-docked]>:nth-child(2){margin-inline-end:var(--wb-dock-width,460px)}[data-workbench-docked] [data-workbench-panel]{width:var(--wb-dock-width,460px);border-left:1px solid var(--dsw-alias-border-l2);left:auto;right:0}";
+		const tagId = "dsh-plugin-workbench/workbench-dock.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId) + "]") === null) {
+			const tag = document.createElement("style");
+			tag.dataset.plugin = "dsh-plugin-workbench";
+			tag.dataset.pluginCss = tagId;
+			tag.textContent = css;
 			document.head.appendChild(tag);
 		}
 		//#endregion
@@ -9487,9 +9616,12 @@ window.__ModuleLoader__.load({
 			const docked = useStore((state) => state.docked);
 			const dockWidth = useStore((state) => state.dockWidth);
 			const pendingTarget = useStore((state) => state.pendingTarget);
+			const linkPreviewPath = useStore((state) => state.linkPreviewPath);
 			const sessionCwd = useSessions((state) => state.current !== void 0 ? state.byId[state.current]?.cwd : void 0);
 			const [tab, setTab] = (0, react.useState)("files");
 			const panelRef = (0, react.useRef)(null);
+			const cwdRef = (0, react.useRef)(sessionCwd);
+			cwdRef.current = sessionCwd;
 			(0, react.useEffect)(() => {
 				const frame = frameElement();
 				if (frame === null) return;
@@ -9540,6 +9672,9 @@ window.__ModuleLoader__.load({
 			const consumeTarget = (0, react.useCallback)(() => {
 				actions.consumeTarget();
 			}, [actions]);
+			const exitLinkPreview = (0, react.useCallback)(() => {
+				actions.exitLinkPreview();
+			}, [actions]);
 			(0, react.useEffect)(() => onWorkbenchRequests({
 				toggle: () => {
 					actions.toggle();
@@ -9548,6 +9683,30 @@ window.__ModuleLoader__.load({
 					actions.openFile(detail);
 				}
 			}), [actions]);
+			(0, react.useEffect)(() => {
+				const onClick = (event) => {
+					const target = event.target;
+					if (!(target instanceof Element)) return;
+					const button = target.closest("button");
+					if (button === null || button.closest("[data-workbench-panel]") !== null) return;
+					const frame = frameElement();
+					if (frame === null) return;
+					const conversation = frame.children[1];
+					const details = frame.children[2];
+					if (!(conversation?.contains(button) === true || details?.contains(button) === true)) return;
+					const token = candidatePath(button.getAttribute("title") ?? "", button.textContent ?? "");
+					if (token === null) return;
+					event.preventDefault();
+					event.stopPropagation();
+					resolvePreviewable(token, cwdRef.current).then((file) => {
+						if (file !== null) actions.openLinkPreview(file);
+					});
+				};
+				document.addEventListener("click", onClick, true);
+				return () => {
+					document.removeEventListener("click", onClick, true);
+				};
+			}, [actions]);
 			const onKeyDown = (0, react.useCallback)((event) => {
 				if (event.key !== "Escape") return;
 				const target = event.target;
@@ -9653,6 +9812,8 @@ window.__ModuleLoader__.load({
 								sessionCwd,
 								openTarget: pendingTarget,
 								onTargetConsumed: consumeTarget,
+								previewOnly: linkPreviewPath !== null,
+								onExitPreviewOnly: exitLinkPreview,
 								labels: {
 									loading: t("loading"),
 									empty: t("empty"),
@@ -9737,243 +9898,20 @@ window.__ModuleLoader__.load({
 			});
 		}
 		//#endregion
-		//#region src/client/artifact-paths.ts
-		/**
-		* Pull candidate file paths out of an assistant message's prose.
-		*
-		* The structured produced-files signal only knows files written through the
-		* file-edit tools; a file a `bash` step wrote and the assistant then named in
-		* its reply is invisible to it. So the reply text is scanned too — but only for
-		* tokens shaped like a real filename, and every hit is checked against the disk
-		* before it becomes a chip, so a token that names nothing is dropped rather than
-		* shown as a dead link.
-		*
-		* @module dsh-plugin-workbench/client/artifact-paths
-		*/
-		/**
-		* Whether a bare token looks like a single file path worth resolving.
-		*
-		* Conservative: one token (no whitespace), bounded length, and a last segment
-		* shaped like `name.ext`. Existence is verified later, so this only has to be a
-		* cheap first filter.
-		* @param token - a candidate token, already trimmed of surrounding syntax.
-		* @returns true when it is worth an existence check.
-		*/
-		function isPathToken(token) {
-			if (token === "" || token.length > 512 || /\s/.test(token)) return false;
-			const last = token.slice(token.lastIndexOf("/") + 1);
-			return /^[^/]+\.[A-Za-z0-9]{1,8}$/.test(last);
-		}
-		/** Trailing punctuation that clings to a path in prose but is not part of it. */
-		const TRAILING = /[)\]}>.,;:!?'"`）】」』，。；：！？]+$/;
-		/** Leading punctuation likewise. */
-		const LEADING = /^[(\[{<'"`（【「『]+/;
-		/**
-		* Extract unique file-path tokens from prose/markdown.
-		*
-		* Inline-code spans (`` `path` ``) are the strongest signal and are taken whole;
-		* the rest of the text is scanned word by word with surrounding punctuation
-		* stripped. Order is first-seen; duplicates collapse.
-		* @param text - the assistant message text.
-		* @returns candidate path tokens, deduped, in first-seen order.
-		*/
-		function extractPathTokens(text) {
-			const found = /* @__PURE__ */ new Set();
-			const add = (raw) => {
-				const token = raw.replace(LEADING, "").replace(TRAILING, "");
-				if (isPathToken(token)) found.add(token);
-			};
-			for (const span of text.match(/`[^`\n]+`/g) ?? []) add(span.slice(1, -1).trim());
-			for (const word of text.split(/[\s]+/)) add(word);
-			return [...found];
-		}
-		//#endregion
-		//#region src/client/artifact-resolve.ts
-		/**
-		* Turn raw path tokens (produced-file locations and prose mentions) into files
-		* the workbench can actually preview: resolved to a read root, and confirmed to
-		* exist on disk.
-		*
-		* @module dsh-plugin-workbench/client/artifact-resolve
-		*/
-		let rootsCache = null;
-		async function loadRoots() {
-			if (rootsCache !== null) return rootsCache;
-			rootsCache = await fetchRoots();
-			return rootsCache;
-		}
-		/** Per-session-lifetime existence memo, so repeated mentions cost one stat. */
-		const existsCache = /* @__PURE__ */ new Map();
-		function toAbsolute(token, cwd) {
-			if (token.startsWith("/")) return token;
-			if (cwd === void 0 || cwd === "") return null;
-			return `${cwd.replace(/\/+$/, "")}/${token}`;
-		}
-		/**
-		* Resolve one token against the roots. Pure given the roots.
-		* @param roots - the readable roots.
-		* @param token - a path token (absolute, or relative to the cwd).
-		* @param cwd - the session working directory, for relative tokens.
-		* @returns the resolved file, or null when it maps outside every root.
-		*/
-		function resolveOne(roots, token, cwd) {
-			const absolute = toAbsolute(token, cwd);
-			if (absolute === null) return null;
-			const target = rootForCwd(roots, absolute);
-			if (target === null) return null;
-			const name = target.path.slice(target.path.lastIndexOf("/") + 1) || target.path;
-			return {
-				root: target.rootId,
-				path: target.path,
-				name,
-				absolute
-			};
-		}
-		async function isFile(artifact) {
-			const key = `${artifact.root}:${artifact.path}`;
-			const cached = existsCache.get(key);
-			if (cached !== void 0) return cached;
-			let ok = false;
-			try {
-				ok = (await fetchStat(artifact.root, artifact.path)).type === "file";
-			} catch {
-				ok = false;
-			}
-			existsCache.set(key, ok);
-			return ok;
-		}
-		/**
-		* Resolve a batch of path tokens to previewable files.
-		*
-		* A token maps to a file only if it lands inside a read root and names a real
-		* file — a mention of something that was deleted, or a directory, or a path
-		* outside the fence, is dropped rather than shown as a dead chip. First-seen
-		* order is kept and duplicates (same absolute path) collapse.
-		* @param tokens - produced-file paths and prose mentions, already unioned.
-		* @param cwd - the session working directory.
-		* @returns the files, in first-seen order.
-		*/
-		async function resolveArtifacts(tokens, cwd) {
-			const roots = await loadRoots().catch(() => []);
-			if (roots.length === 0) return [];
-			const candidates = [];
-			const seen = /* @__PURE__ */ new Set();
-			for (const token of tokens) {
-				const resolved = resolveOne(roots, token, cwd);
-				if (resolved === null || seen.has(resolved.absolute)) continue;
-				seen.add(resolved.absolute);
-				candidates.push(resolved);
-			}
-			return (await Promise.all(candidates.map(async (artifact) => ({
-				artifact,
-				ok: await isFile(artifact)
-			})))).filter((entry) => entry.ok).map((entry) => entry.artifact);
-		}
-		//#endregion
-		//#region \0dsh-css:/Users/hongbo/dsh/plugins/packages/workbench/src/client/TurnArtifacts.module.css.mjs
-		const css = ".qDB6tq_root{flex-direction:column;gap:8px;display:flex}.qDB6tq_chips{flex-wrap:wrap;gap:6px;display:flex}.qDB6tq_chip{border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;text-overflow:ellipsis;white-space:nowrap;border-radius:999px;max-width:100%;padding:3px 10px;font-size:12px;overflow:hidden}.qDB6tq_chip:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}.qDB6tq_chipActive{border-color:var(--dsw-alias-border-l3);background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary)}.qDB6tq_preview{border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-base);border-radius:8px;height:420px;overflow:hidden}";
-		const tagId = "dsh-plugin-workbench/TurnArtifacts.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId) + "]") === null) {
-			const tag = document.createElement("style");
-			tag.dataset.plugin = "dsh-plugin-workbench";
-			tag.dataset.pluginCss = tagId;
-			tag.textContent = css;
-			document.head.appendChild(tag);
-		}
-		var TurnArtifacts_module_css_default = {
-			"root": "qDB6tq_root",
-			"chipActive": "qDB6tq_chipActive",
-			"preview": "qDB6tq_preview",
-			"chips": "qDB6tq_chips",
-			"chip": "qDB6tq_chip"
-		};
-		//#endregion
-		//#region src/client/TurnArtifacts.tsx
-		/**
-		* The turn footer's file artifacts: chips for the files a completed turn wrote
-		* or named, each expanding to an inline preview right in the conversation.
-		*
-		* This takes over the `conversation.chat.turnTail` chain (a single-winner seat
-		* dsh's own ProducedFiles otherwise renders): it shows the same produced files
-		* — read from the `deliverables` turn data via the `matched` prop — plus files
-		* the assistant merely named in its prose (which the structured signal misses,
-		* e.g. a `bash` step's output), each checked to exist before it becomes a chip.
-		* Clicking a chip previews the file inline through the workbench's own safe
-		* renderer (sandboxed HTML, images, code), not the host opener.
-		*/
-		/** Concatenated text of the assistant message at `seq`, or '' if not found. */
-		function closingText(snapshot, seq) {
-			const node = snapshot.nodes.find((item) => item.kind === "assistant" && item.seq === seq);
-			if (node === void 0 || node.kind !== "assistant") return "";
-			return node.blocks.filter((block) => block.kind === "text").map((block) => block.text).join("");
-		}
-		/** Render the turn's file chips and an inline preview for the expanded one. */
-		function TurnArtifacts({ matched, seq, useSession, useSessions, sessionId, t }) {
-			const text = useSession((snapshot) => closingText(snapshot, seq));
-			const cwd = useSessions((state) => state.byId[sessionId]?.cwd);
-			const [files, setFiles] = (0, react.useState)([]);
-			const [expanded, setExpanded] = (0, react.useState)(null);
-			(0, react.useEffect)(() => {
-				const tokens = [.../* @__PURE__ */ new Set([...matched, ...extractPathTokens(text)])];
-				if (tokens.length === 0) {
-					setFiles([]);
-					return;
-				}
-				let cancelled = false;
-				resolveArtifacts(tokens, cwd).then((resolved) => {
-					if (!cancelled) setFiles(resolved);
-				}).catch(() => {});
-				return () => {
-					cancelled = true;
-				};
-			}, [
-				matched,
-				text,
-				cwd
-			]);
-			if (files.length === 0) return null;
-			const open = files.find((file) => file.absolute === expanded) ?? null;
-			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-				className: TurnArtifacts_module_css_default.root,
-				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-					className: TurnArtifacts_module_css_default.chips,
-					children: files.map((file) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-						type: "button",
-						className: file.absolute === expanded ? `${TurnArtifacts_module_css_default.chip} ${TurnArtifacts_module_css_default.chipActive}` : TurnArtifacts_module_css_default.chip,
-						title: file.absolute,
-						"aria-expanded": file.absolute === expanded,
-						onClick: () => {
-							setExpanded((current) => current === file.absolute ? null : file.absolute);
-						},
-						children: file.name
-					}, file.absolute))
-				}), open === null ? null : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-					className: TurnArtifacts_module_css_default.preview,
-					children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(FilePreview, {
-						root: open.root,
-						path: open.path,
-						name: open.name,
-						writeEnabled: false,
-						poll: false,
-						onSaved: () => {},
-						labels: filePreviewLabels(t)
-					})
-				})]
-			});
-		}
-		//#endregion
 		//#region src/client/store.ts
 		/** Shared open/closed state for the workbench surface. */
 		/**
 		* One handle shared by the launcher button, the overlay, and the conversation
-		* artifact links, so every registration binds the same instance.
+		* link interceptor, so every registration binds the same instance.
 		*/
 		const workbenchStore = (0, _deepseek_ai_dsh_client_runtime_client.defineStore)({
 			init: () => ({
 				open: false,
 				docked: true,
 				dockWidth: 460,
-				pendingTarget: null
+				pendingTarget: null,
+				linkPreviewPath: null,
+				openBeforeLink: false
 			}),
 			actions: {
 				toggle: (draft) => {
@@ -9981,6 +9919,7 @@ window.__ModuleLoader__.load({
 				},
 				close: (draft) => {
 					draft.open = false;
+					draft.linkPreviewPath = null;
 				},
 				toggleDock: (draft) => {
 					draft.docked = !draft.docked;
@@ -9996,6 +9935,27 @@ window.__ModuleLoader__.load({
 				/** The browser has navigated to the pending target; forget it. */
 				consumeTarget: (draft) => {
 					draft.pendingTarget = null;
+				},
+				/**
+				* A conversation file link was clicked: preview it in the docked panel, or
+				* — same link while showing — close and restore. The rules live in
+				* {@link linkClick}, where they are pure and tested.
+				*/
+				openLinkPreview: (draft, target) => {
+					const next = linkClick(draft, target.absolute);
+					draft.open = next.open;
+					draft.linkPreviewPath = next.linkPreviewPath;
+					draft.openBeforeLink = next.openBeforeLink;
+					draft.pendingTarget = next.opens ? {
+						root: target.root,
+						path: target.path,
+						name: target.name
+					} : null;
+					if (next.opens) draft.docked = true;
+				},
+				/** Leave link-preview mode (Back in the browser) but keep the surface open. */
+				exitLinkPreview: (draft) => {
+					draft.linkPreviewPath = null;
 				}
 			}
 		});
@@ -10146,18 +10106,6 @@ window.__ModuleLoader__.load({
 		};
 		//#endregion
 		//#region src/client/index.tsx
-		/** Produced paths at or before the closing seq, deduped in first-seen order. */
-		function producedForClosing(data, seq) {
-			if (data === void 0) return [];
-			const paths = [];
-			const seen = /* @__PURE__ */ new Set();
-			for (const entry of data.produced) {
-				if (entry.seq > seq || seen.has(entry.path)) continue;
-				seen.add(entry.path);
-				paths.push(entry.path);
-			}
-			return paths;
-		}
 		/** Dictionary namespace owned by this plugin. */
 		const NS = "workbench";
 		/** Services required by the registrations below. */
@@ -10188,12 +10136,6 @@ window.__ModuleLoader__.load({
 				order: 10,
 				locale: NS
 			}, WorkbenchHeaderLauncher));
-			ctx.slots.inject("conversation.chat.turnTail", () => ctx.slots.register({
-				name: "conversation.chat.turnTail",
-				priority: -1,
-				select: (owner) => producedForClosing(owner.turn.data.get("deliverables"), owner.seq),
-				locale: NS
-			}, TurnArtifacts));
 		}
 		//#endregion
 		exports.NS = NS;

@@ -8,6 +8,8 @@ import type {} from '@deepseek-ai/dsh-client-runtime/client'
 import type { workbenchStore } from './store.ts'
 import { clampDockWidth } from './dock-width.ts'
 import { onWorkbenchRequests } from './workbench-events.ts'
+import { candidatePath } from './link-preview.ts'
+import { resolvePreviewable } from './artifact-resolve.ts'
 import { FileBrowser } from './FileBrowser.tsx'
 import { TerminalPane } from './TerminalPane.tsx'
 import css from './WorkbenchOverlay.module.css'
@@ -42,15 +44,22 @@ export function WorkbenchOverlay({ useStore, useSessions, actions, t }: Workbenc
   const open = useStore(state => state.open)
   const docked = useStore(state => state.docked)
   const dockWidth = useStore(state => state.dockWidth)
-  // A file an artifact link asked to preview; it lands the surface on the Files
-  // tab and hands the request to the browser, which clears it once navigated.
+  // A file an intercepted link asked to preview; it lands the surface on the
+  // Files tab and hands the request to the browser, which clears it once there.
   const pendingTarget = useStore(state => state.pendingTarget)
+  // While a link preview is showing, the browser hides its directory list and
+  // shows only the file, with a Back affordance to return to browsing.
+  const linkPreviewPath = useStore(state => state.linkPreviewPath)
   // The directory of the session currently in view. It drives both the file
   // tree's root and where new terminals open, and re-renders this surface when
   // the user switches sessions. Transiently undefined before the host fills it.
   const sessionCwd = useSessions(state => (state.current !== undefined ? state.byId[state.current]?.cwd : undefined))
   const [tab, setTab] = useState<Tab>('files')
   const panelRef = useRef<HTMLDivElement | null>(null)
+  // The link interceptor reads the cwd through a ref, so a session switch does
+  // not re-register the document listener.
+  const cwdRef = useRef(sessionCwd)
+  cwdRef.current = sessionCwd
 
   // Dress the frame as a right-hand dock while open and docked: mark it so the
   // stylesheet reserves the strip and reflows the conversation, and publish the
@@ -104,15 +113,50 @@ export function WorkbenchOverlay({ useStore, useSessions, actions, t }: Workbenc
   }, [pendingTarget])
 
   const consumeTarget = useCallback(() => { actions.consumeTarget() }, [actions])
+  const exitLinkPreview = useCallback(() => { actions.exitLinkPreview() }, [actions])
 
-  // Listen for the session-scoped seats (header launcher, artifact links), which
-  // cannot bind this root store and so drive it through the window-event bridge.
-  // The overlay is always mounted (it renders null while closed), so this is the
+  // Listen for the session-scoped seats (header launcher), which cannot bind
+  // this root store and so drive it through the window-event bridge. The
+  // overlay is always mounted (it renders null while closed), so this is the
   // right place to hold the subscription.
   useEffect(() => onWorkbenchRequests({
     toggle: () => { actions.toggle() },
     openFile: (detail) => { actions.openFile(detail) },
   }), [actions])
+
+  // Intercept the conversation's file links — inline mentions, produced-file
+  // chips, tool-card paths. All of them open through the *host* opener, i.e. on
+  // the machine dsh runs on, which is useless from a remote browser; the panel
+  // preview works anywhere. There is no supported hook to re-point them (the
+  // providing service refuses a second registration, and the buttons carry only
+  // hash classes), so this recognizes them by content: a button, inside the
+  // conversation or details column, whose title/text is path-shaped. The click
+  // is swallowed in the capture phase — before React's own delegated handler —
+  // and the file opens in the docked panel once it resolves inside the fence.
+  useEffect(() => {
+    const onClick = (event: MouseEvent): void => {
+      const target = event.target
+      if (!(target instanceof Element)) return
+      const button = target.closest('button')
+      if (button === null || button.closest('[data-workbench-panel]') !== null) return
+      const frame = frameElement()
+      if (frame === null) return
+      const conversation = frame.children[1]
+      const details = frame.children[2]
+      if (!(conversation?.contains(button) === true || details?.contains(button) === true)) return
+      const token = candidatePath(button.getAttribute('title') ?? '', button.textContent ?? '')
+      if (token === null) return
+      // Swallowed even if the resolve below misses: the host-opener default is
+      // exactly the behavior being replaced, never a fallback.
+      event.preventDefault()
+      event.stopPropagation()
+      void resolvePreviewable(token, cwdRef.current).then((file) => {
+        if (file !== null) actions.openLinkPreview(file)
+      })
+    }
+    document.addEventListener('click', onClick, true)
+    return () => { document.removeEventListener('click', onClick, true) }
+  }, [actions])
 
   // Escape closes the surface, except from inside the terminal: there it is a
   // keystroke the shell owns (vim, less, readline all use it).
@@ -226,6 +270,8 @@ export function WorkbenchOverlay({ useStore, useSessions, actions, t }: Workbenc
             sessionCwd={sessionCwd}
             openTarget={pendingTarget}
             onTargetConsumed={consumeTarget}
+            previewOnly={linkPreviewPath !== null}
+            onExitPreviewOnly={exitLinkPreview}
             labels={{
               loading: t('loading'),
               empty: t('empty'),
