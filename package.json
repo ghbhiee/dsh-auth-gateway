@@ -6,15 +6,13 @@
   "author": "guohongbo@outlook.com",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ghbhiee/dsh-plugins.git",
-    "directory": "packages/auth-gateway"
+    "url": "git+https://github.com/ghbhiee/dsh-auth-gateway.git"
   },
-  "homepage": "https://github.com/ghbhiee/dsh-plugins/tree/main/packages/auth-gateway#readme",
+  "homepage": "https://github.com/ghbhiee/dsh-auth-gateway#readme",
   "bugs": {
-    "url": "https://github.com/ghbhiee/dsh-plugins/issues"
+    "url": "https://github.com/ghbhiee/dsh-auth-gateway/issues"
   },
   "keywords": [
-    "dsh-plugin",
     "deepseek-harness",
     "webauthn",
     "passkey",
