@@ -54,6 +54,8 @@ export interface FileBrowserLabels extends FileActionLabels {
   emptyFile: string
   selectFile: string
   parent: string
+  /** Button that leaves a drilled-in preview and returns to the list (narrow layout). */
+  back: string
   select: string
   open: string
   save: string
@@ -86,6 +88,13 @@ function parentOf(path: string): string {
 
 /** How often to re-check the open directory while the panel is on screen. */
 const REFRESH_INTERVAL_MS = 5000
+
+/**
+ * Below this width the two panes will not both fit, so the browser switches
+ * from side-by-side to a drill-in: the list, then a file fills the pane with a
+ * Back button. Matches the docked panel's usual narrow width.
+ */
+const NARROW_BROWSER_PX = 560
 
 /** A cheap fingerprint of a listing, so an unchanged poll changes nothing. */
 function signatureOf(entries: readonly ListEntry[]): string {
@@ -124,6 +133,26 @@ export function FileBrowser({ labels, sessionCwd, openTarget, onTargetConsumed }
   const [query, setQuery] = useState('')
   const [hits, setHits] = useState<SearchHit[] | null>(null)
   const [searchTruncated, setSearchTruncated] = useState(false)
+  /** True when the pane is too narrow for side-by-side, so it drills in instead. */
+  const [narrow, setNarrow] = useState(false)
+  const browserRef = useRef<HTMLDivElement | null>(null)
+
+  // Measure the pane, not the window: the browser can be docked at any width and
+  // switches to drill-in below the side-by-side threshold. A zero width means it
+  // is hidden (the terminal tab), so the last real decision is kept.
+  useEffect(() => {
+    const element = browserRef.current
+    if (element === null) return
+    const update = (): void => {
+      const width = element.clientWidth
+      if (width > 0) setNarrow(width < NARROW_BROWSER_PX)
+    }
+    update()
+    if (typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(update)
+    observer.observe(element)
+    return () => { observer.disconnect() }
+  }, [])
 
   const refresh = useCallback(() => { setReloadToken(token => token + 1) }, [])
   /** True once the browser has chosen its first root, so a later session switch re-roots but a first render does not race. */
@@ -338,7 +367,14 @@ export function FileBrowser({ labels, sessionCwd, openTarget, onTargetConsumed }
   const crumbs = path.split('/').filter(Boolean)
 
   return (
-    <div className={css.browser}>
+    <div
+      className={css.browser}
+      ref={browserRef}
+      // When narrow, the stylesheet stacks the panes and `data-view` picks which
+      // one shows; wide, both show side by side and these are inert.
+      data-narrow={narrow ? 'true' : undefined}
+      data-view={preview !== null ? 'preview' : 'list'}
+    >
       <aside
         className={dropActive ? `${css.list} ${css.listDropping}` : css.list}
         onDragOver={onDragOver}
@@ -422,6 +458,7 @@ export function FileBrowser({ labels, sessionCwd, openTarget, onTargetConsumed }
             {path === '' ? null : (
               <li>
                 <button type="button" className={css.row} onClick={() => { setPath(parentOf(path)); setPreview(null); setMarked(null) }}>
+                  <span className={css.icon} aria-hidden="true">↑</span>
                   <span className={css.name}>{labels.parent}</span>
                 </button>
               </li>
@@ -455,6 +492,14 @@ export function FileBrowser({ labels, sessionCwd, openTarget, onTargetConsumed }
       </aside>
 
       <section className={css.preview}>
+        {narrow && preview !== null ? (
+          <div className={css.backBar}>
+            <button type="button" className={css.back} onClick={() => { setPreview(null); setMarked(null) }}>
+              <span aria-hidden="true">←</span> {labels.back}
+            </button>
+            <span className={css.backName}>{preview.name}</span>
+          </div>
+        ) : null}
         {preview === null
           ? <div className={css.notice}>{labels.selectFile}</div>
           : (

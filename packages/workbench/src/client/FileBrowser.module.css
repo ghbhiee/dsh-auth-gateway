@@ -108,6 +108,67 @@
   overflow: auto;
 }
 
+/* Narrow layout: the two panes no longer fit side by side, so the browser
+   drills in — the list fills the pane, and opening a file overlays the preview
+   with a Back button. `data-view` (set from whether a file is open) picks which
+   pane shows. Wide, none of this applies and both panes render together. */
+.browser[data-narrow='true'] {
+  position: relative;
+}
+
+.browser[data-narrow='true'] .list {
+  width: 100%;
+  min-width: 0;
+  border-right: none;
+}
+
+.browser[data-narrow='true'] .preview {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: var(--dsw-alias-bg-base);
+}
+
+.browser[data-narrow='true'][data-view='list'] .preview {
+  display: none;
+}
+
+.browser[data-narrow='true'][data-view='preview'] .list {
+  display: none;
+}
+
+.backBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--dsw-alias-border-l2);
+}
+
+.back {
+  padding: 3px 8px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--dsw-alias-label-secondary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+}
+
+.back:hover {
+  background: var(--dsw-alias-interactive-bg-hover);
+  color: var(--dsw-alias-label-primary);
+}
+
+.backName {
+  overflow: hidden;
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .notice {
   padding: 12px;
   color: var(--dsw-alias-label-tertiary);

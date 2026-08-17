@@ -10,7 +10,7 @@ import { FileBrowser, type FileBrowserLabels } from '../src/client/FileBrowser.t
 
 const labels: FileBrowserLabels = {
   loading: 'Loading…', empty: 'Empty', truncated: 'Truncated', binary: 'Binary', notUtf8: 'Not UTF-8',
-  emptyFile: 'Empty file', selectFile: 'Pick a file', parent: 'Parent directory',
+  emptyFile: 'Empty file', selectFile: 'Pick a file', parent: 'Parent directory', back: 'Back',
   select: 'Select', open: 'Open', save: 'Save', edit: 'Edit', saved: 'Saved',
   newFile: 'New file', newFolder: 'New folder', upload: 'Upload', rename: 'Rename',
   delete: 'Delete', confirmDelete: 'Confirm delete?', create: 'OK', cancel: 'Cancel',
@@ -173,6 +173,51 @@ describe('session directory', () => {
     )
     await waitFor(() => { expect(consumed).toHaveBeenCalled() })
     expect(calls.some(call => call.includes('read?root=nope'))).toBe(false)
+  })
+})
+
+describe('parent directory', () => {
+  it('shows an up icon on the parent row', async () => {
+    render(<FileBrowser labels={labels} />)
+    await waitFor(() => { expect(screen.getByText('sub')).toBeDefined() })
+    fireEvent.click(screen.getByText('sub'))
+    await waitFor(() => { expect(screen.getByText('Parent directory')).toBeDefined() })
+    expect(screen.getByText('↑')).toBeDefined()
+  })
+})
+
+describe('narrow drill-in layout', () => {
+  // jsdom has no layout, so drive the width and the observer by hand.
+  beforeEach(() => {
+    Object.defineProperty(HTMLElement.prototype, 'clientWidth', { configurable: true, get: () => 400 })
+    vi.stubGlobal('ResizeObserver', class {
+      cb: () => void
+      constructor(cb: () => void) { this.cb = cb }
+      observe(): void { this.cb() }
+      disconnect(): void { /* nothing */ }
+    })
+  })
+  afterEach(() => {
+    Object.defineProperty(HTMLElement.prototype, 'clientWidth', { configurable: true, get: () => 0 })
+  })
+
+  it('drills into a file with a Back button, and back to the list', async () => {
+    render(<FileBrowser labels={labels} />)
+    await waitFor(() => { expect(screen.getByText('top.txt')).toBeDefined() })
+    // Narrow + nothing open: the list shows, no Back button.
+    const browser = document.querySelector('[data-narrow="true"]')
+    expect(browser?.getAttribute('data-view')).toBe('list')
+    expect(screen.queryByText('Back')).toBeNull()
+
+    // Open a file: drills into the preview with a Back affordance.
+    fireEvent.click(screen.getByText('top.txt'))
+    await waitFor(() => { expect(screen.getByText('Back')).toBeDefined() })
+    expect(document.querySelector('[data-narrow="true"]')?.getAttribute('data-view')).toBe('preview')
+
+    // Back returns to the list.
+    fireEvent.click(screen.getByText('Back'))
+    await waitFor(() => { expect(screen.queryByText('Back')).toBeNull() })
+    expect(document.querySelector('[data-narrow="true"]')?.getAttribute('data-view')).toBe('list')
   })
 })
 

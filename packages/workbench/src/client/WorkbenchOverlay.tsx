@@ -235,6 +235,7 @@ export function WorkbenchOverlay({ useStore, useSessions, actions, t }: Workbenc
               emptyFile: t('emptyFile'),
               selectFile: t('selectFile'),
               parent: t('parent'),
+              back: t('back'),
               newFile: t('newFile'),
               newFolder: t('newFolder'),
               upload: t('upload'),
