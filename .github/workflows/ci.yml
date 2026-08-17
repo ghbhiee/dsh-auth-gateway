@@ -11,21 +11,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      # Version comes from the root package.json "packageManager" field, so the
-      # toolchain has one source of truth; passing `version` here too would make
-      # pnpm/action-setup error on the duplicate.
-      - uses: pnpm/action-setup@v4
-
       - uses: actions/setup-node@v4
         with:
-          # Matches the engines field: ^22.19.0 || >=24.0.0
           node-version: 24
-          cache: pnpm
-
+          cache: npm
       - name: Install
-        run: pnpm install --frozen-lockfile
-
-      # typecheck -> test (vitest, incl. real PTY + WebSocket) -> build (tsdown)
+        run: npm ci
       - name: Check
-        run: pnpm run check
+        run: npm run check
