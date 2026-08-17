@@ -4,20 +4,34 @@ A file browser, file preview, and browser terminal for the [DeepSeek Harness](ht
 
 ## Install
 
-Not on npm yet. Install from a [release](https://github.com/ghbhiee/dsh-plugins/releases)
-tarball (download it first — passing the URL to `dsh plugin add` trips a pnpm
-integrity check) or from a local clone:
+Not on npm yet. The built `lib/` is committed, so it installs straight from a
+GitHub URL — no download, no build step. It is a monorepo, so the `#path:`
+subdirectory fragment is required (a bare `github:owner/repo` resolves to the
+private workspace root, which is not a plugin):
 
 ```sh
-# From a release tarball
-curl -LO https://github.com/ghbhiee/dsh-plugins/releases/download/v0.1.0/dsh-plugin-workbench-0.1.0.tgz
-dsh plugin --profile web add ./dsh-plugin-workbench-0.1.0.tgz
+# Directly from GitHub (tracks the default branch)
+dsh plugin --profile web add "github:ghbhiee/dsh-plugins#path:packages/workbench"
+```
 
-# ...or from a clone
+Or from a [release](https://github.com/ghbhiee/dsh-plugins/releases) tarball, or
+a local clone:
+
+```sh
+# From a release tarball (download it first — passing the URL to `dsh plugin
+# add` trips a pnpm integrity check)
+curl -LO https://github.com/ghbhiee/dsh-plugins/releases/download/v0.2.0/dsh-plugin-workbench-0.2.0.tgz
+dsh plugin --profile web add ./dsh-plugin-workbench-0.2.0.tgz
+
+# ...or from a clone (a `link:`, so a local rebuild is picked up)
 dsh plugin --profile web add ./packages/workbench
 
 dsh web
 ```
+
+The other packages install the same way — `#path:packages/mobile-shell`,
+`#path:packages/cli-session`. Because `lib/` is versioned, it must be rebuilt and
+committed on every change or a git install serves stale code.
 
 There are two launchers — one at the bottom of the sidebar, and one in the **top-right of the conversation header** (in an active session), so the panel is reachable from the session itself. The surface opens **docked to the right of the active session** by default — chat and files/terminal side by side — with a **Full frame ↔ Dock right** toggle in its header and a draggable divider to resize the split (arrow keys work on it too, and the width persists).
 
