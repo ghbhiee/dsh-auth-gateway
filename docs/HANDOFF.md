@@ -5,6 +5,21 @@ Continuation brief for a fresh session working on this repo. Read this, then
 `~/dsh/PLAN-dsh-plugins.md` (local machine only, NOT in git). Public repo:
 keep secrets out.
 
+
+## Working agreement — git is the source of truth
+
+This repo is edited from more than one place: a parked continuation session for
+this repo, and whichever session the user happens to be in. That drifted once —
+the same repo had uncommitted work in one place while another session was
+building on top of it — so:
+
+**Commit and push as soon as a change is finished. Do not leave finished work
+sitting uncommitted, and never assume the working tree is what git has.**
+
+Before starting anything: `git pull` (or at minimum `git status && git log --oneline -3`).
+Whatever is on `main` is what everyone else — and every `github:` install —
+sees. Whatever is on `main` is what a deploy pulls.
+
 ## What this is
 
 A passkey (WebAuthn) reverse-proxy **companion service** that guards a
