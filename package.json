@@ -32,7 +32,8 @@
   ],
   "scripts": {
     "start": "node server.js",
-    "check": "node --check server.js && node --check bin/dsh-approve.js"
+    "test": "node --test",
+    "check": "node --check server.js && node --check bin/dsh-approve.js && node --test"
   },
   "engines": {
     "node": ">=20"

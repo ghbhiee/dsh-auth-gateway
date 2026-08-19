@@ -198,6 +198,27 @@
   }
   const setBusy = (b) => { $login.disabled = b; $openReg.disabled = b; };
 
+  // Desktop pairing: when the dsh Desktop app sent us here (?pair=1), a
+  // successful login ends with a one-time code to type into the app instead
+  // of a redirect into the web UI.
+  const wantsPair = new URLSearchParams(location.search).has('pair');
+  async function finishLogin() {
+    if (!wantsPair) { location.href = '/'; return; }
+    try {
+      const r = await fetch('/auth/pair/code', { method: 'POST' });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+      setStatus(
+        '✅ 已登录。桌面端配对码：\n<code style="font-size:1.6em;letter-spacing:.25em">'
+          + esc(d.code) + '</code>\n回到 dsh Desktop 填入即可（'
+          + Math.round((d.expiresInSeconds || 120) / 60) + ' 分钟内有效，一次性）。',
+        'ok'
+      );
+    } catch (e) {
+      setStatus('配对码获取失败：' + esc(String(e.message || e)), 'err');
+    }
+  }
+
   // WebAuthn never tells the server which account holds the passkey, so the
   // copy has to ask — worded for wherever it will actually be stored.
   (function tailorEmailPrompt() {
@@ -278,7 +299,7 @@
 
       if (result.status === 'ok') {
         setStatus('✅ 登录成功，正在进入…', 'ok');
-        setTimeout(() => location.href = '/', 400);
+        setTimeout(finishLogin, 400);
         return;
       }
       if (result.status === 'pending') {
@@ -388,7 +409,7 @@
         const data = await r.json();
         if (data.status === 'approved') {
           setStatus('✅ 已批准，正在进入…', 'ok');
-          setTimeout(() => location.href = '/', 700);
+          setTimeout(finishLogin, 700);
           return;
         }
         if (data.status === 'denied') {

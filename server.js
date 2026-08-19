@@ -48,6 +48,10 @@ const CHALLENGE_TTL_MS = 5 * 60 * 1000;    // 5min
 // approved" — it only ever exists for a not-yet-trusted passkey, so it can
 // afford a longer window than a per-login approval could.
 const PENDING_TTL_MS = 30 * 60 * 1000;     // 30min
+// Desktop pairing codes: shown by a signed-in browser, typed into the
+// desktop app once. Short and single-use by design — the code is a courier
+// for a session, not a credential.
+const PAIR_TTL_MS = 2 * 60 * 1000;         // 2min
 // Sweep decided/expired state off disk periodically (dsh-approve cleanup does
 // the same on demand; this makes it happen without anyone remembering to run it).
 const SWEEP_INTERVAL_MS = 10 * 60 * 1000;  // 10min
@@ -77,9 +81,10 @@ const PUBLIC_DIR = process.env.DSH_GW_PUBLIC_DIR || path.join(__dirname, 'public
 const CREDENTIALS_FILE = path.join(STATE_DIR, 'credentials.json');
 const PENDING_DIR = path.join(STATE_DIR, 'pending');
 const SESSIONS_DIR = path.join(STATE_DIR, 'sessions');
+const PAIR_DIR = path.join(STATE_DIR, 'pairing');
 const SECRET_FILE = path.join(STATE_DIR, 'secret');
 
-for (const d of [PENDING_DIR, SESSIONS_DIR]) fs.mkdirSync(d, { recursive: true });
+for (const d of [PENDING_DIR, SESSIONS_DIR, PAIR_DIR]) fs.mkdirSync(d, { recursive: true });
 
 // ---- base64url helpers (Node Buffer supports 'base64url') ----
 const b64u = {
@@ -271,6 +276,17 @@ function sweepState() {
         const rec = JSON.parse(fs.readFileSync(p, 'utf8'));
         if (now - rec.createdAt > PENDING_TTL_MS) pending += drop(p);
       } catch { pending += drop(p); }   // unparseable → nothing can use it
+    }
+  } catch {}
+
+  try {
+    for (const f of fs.readdirSync(PAIR_DIR)) {
+      if (!f.endsWith('.json')) continue;
+      const p = path.join(PAIR_DIR, f);
+      try {
+        const rec = JSON.parse(fs.readFileSync(p, 'utf8'));
+        if (now - rec.createdAt > PAIR_TTL_MS) drop(p);
+      } catch { drop(p); }
     }
   } catch {}
 
@@ -560,6 +576,65 @@ app.get('/auth/status', (req, res) => {
     return res.json({ status: 'approved' });
   }
   res.json({ status: 'pending' });
+});
+
+// ---- desktop pairing ----
+// A signed-in browser mints a one-time code; the desktop app (which cannot
+// run the passkey ceremony — Electron has no macOS platform authenticator)
+// swaps it for a session of its own. The code grants nothing beyond what
+// the issuing browser session already had: same user, same credential
+// lineage, so revoking the passkey still kills both sessions.
+
+function newPairCode() {
+  // 8 chars from an unambiguous alphabet — humans retype this from the
+  // browser. 31^8 ≈ 8.5e11 against a 2-minute, delete-on-first-try window.
+  const alphabet = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (const byte of crypto.randomBytes(8)) code += alphabet[byte % alphabet.length];
+  return code;
+}
+
+app.post('/auth/pair/code', (req, res) => {
+  const sess = getSession(req);
+  if (!sess) return res.status(401).json({ error: 'not signed in' });
+  const code = newPairCode();
+  const rec = {
+    code,
+    userName: sess.userName,
+    credentialId: sess.credentialId || null,
+    ip: clientIp(req),
+    createdAt: Date.now(),
+  };
+  fs.writeFileSync(path.join(PAIR_DIR, code + '.json'), JSON.stringify(rec, null, 2), { mode: 0o600 });
+  console.log(`[dsh-gateway] pairing code issued by session ${sess.sid.slice(0, 8)} (ip=${rec.ip})`);
+  res.json({ code, expiresInSeconds: PAIR_TTL_MS / 1000 });
+});
+
+app.post('/auth/pair/claim', json, (req, res) => {
+  const raw = String(req.body?.code || '').trim().toUpperCase();
+  if (!/^[A-HJ-NP-Z2-9]{8}$/.test(raw)) {
+    return res.status(400).json({ error: '配对码格式不对' });
+  }
+  const file = path.join(PAIR_DIR, raw + '.json');
+  let rec = null;
+  try { rec = JSON.parse(fs.readFileSync(file, 'utf8')); } catch {}
+  // One-time: the file dies on the first claim attempt, valid or not.
+  try { fs.unlinkSync(file); } catch {}
+  if (!rec || Date.now() - rec.createdAt > PAIR_TTL_MS) {
+    console.warn(`[dsh-gateway] pairing claim refused (ip=${clientIp(req)})`);
+    return res.status(400).json({ error: '配对码无效或已过期' });
+  }
+  const sess = createSession(rec.userName, clientIp(req), rec.credentialId);
+  res.setHeader('Set-Cookie', sessionCookie(sess.sid));
+  console.log(`[dsh-gateway] pairing claimed -> session ${sess.sid.slice(0, 8)} (ip=${clientIp(req)})`);
+  res.json({
+    ok: true,
+    cookie: {
+      name: COOKIE_NAME,
+      value: `${sess.sid}.${sign(sess.sid)}`,
+      expires: Math.floor(sess.expires / 1000),
+    },
+  });
 });
 
 app.post('/auth/logout', (req, res) => {
