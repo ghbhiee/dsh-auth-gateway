@@ -60,6 +60,43 @@ and survives reinstall/upgrade. Logs: `~/Library/Logs/dsh-gateway.log`.
 remote access is down. Restart deliberately:
 `launchctl kickstart -k gui/$(id -u)/com.tokencv.dsh-gateway`.
 
+## Deployment reality (server 15 — `ds.tokencv.com`)
+
+`ds.tokencv.com` → nginx → **gateway :3090** → dsh web :3080, run by systemd
+(`dsh-gateway.service`, `WorkingDirectory=/opt/dsh-gateway`). Six passkeys are
+registered here.
+
+**Its state dir is `/opt/dsh-gateway/state`, not the `~/.dsh-gateway/state`
+default** — kept there by a systemd drop-in:
+
+```
+/etc/systemd/system/dsh-gateway.service.d/override.conf
+  [Service]
+  Environment=DSH_GW_STATE_DIR=/opt/dsh-gateway/state
+```
+
+That drop-in is load-bearing. Until 2026-08-18 the server ran a *forked*
+`server.js` with the paths hardcoded and no git checkout at all; deploying
+this repo over it without the override would have sent the gateway looking for
+credentials in an empty directory — every passkey dead, nobody able to log in.
+The fork is gone (the directory is now a real checkout of `main`), but check
+the drop-in still exists before believing an upgrade is safe.
+
+Updating is now ordinary git:
+
+```sh
+ssh root@15.tokencv.com   # DNS is flaky; 193.22.152.136 works directly
+cd /opt/dsh-gateway && git pull
+npm ci --omit=dev                        # only when dependencies changed
+systemctl restart dsh-gateway.service
+curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:3090/     # 302 = up
+python3 -c "import json;print(len(json.load(open('state/credentials.json'))))"
+```
+
+Untracked and therefore safe across checkouts: `state/`, `node_modules/`, and
+the `server.js.bak-*` snapshots from the pre-git era. A tarball of the
+pre-migration tree sits at `/root/dsh-gateway-backup-20260818-230834.tar.gz`.
+
 ## Constraints / cautions
 
 - Keep it dependency-light and buildless; `npm run check` is `node --check`
@@ -69,9 +106,14 @@ remote access is down. Restart deliberately:
 - Config is env-only (no config file) so the launchd plist stays the single
   source of deployment truth; add new knobs as `DSH_GW_*` variables with
   sensible defaults.
-- Cookie/session semantics and the WebAuthn RP ID (`mac.tokencv.com`) are
-  deployment-coupled: changing the public hostname means a new RP ID and
-  re-registering passkeys.
+- Cookie/session semantics and the WebAuthn RP ID (`mac.tokencv.com` here,
+  `ds.tokencv.com` on server 15) are deployment-coupled: changing the public
+  hostname means a new RP ID and re-registering passkeys.
+- **Before deploying anywhere, diff the target's `server.js` against the
+  commit you are about to install.** Both live deployments predate this repo's
+  env-driven config; one of them still had hardcoded paths in 2026-08-18. A
+  deployment that silently relocates `STATE_DIR` locks everyone out. Trial-run
+  the new code on a spare port against a *copy* of the state dir first.
 
 ## Verify
 
